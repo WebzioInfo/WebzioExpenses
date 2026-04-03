@@ -8,7 +8,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import QuickAdd from '@/src/components/QuickAdd';
 
 // Pages that don't need the main layout (full-screen)
-const PUBLIC_PATHS = ['/login', '/setup'];
+const PUBLIC_PATHS = ['/login'];
 
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,9 +20,7 @@ export default function MainLayout({ children }) {
 
   useEffect(() => {
     if (!loading) {
-      if (needsSetup) {
-        if (pathname !== '/setup') router.replace('/setup');
-      } else if (!isAuthenticated) {
+      if (!isAuthenticated) {
         if (!isPublic) router.replace('/login');
       } else if (isAuthenticated && isPublic) {
         // Logged in user on login/setup page — go home
