@@ -1,0 +1,82 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import { X } from 'lucide-react';
+import { cn } from '@/src/utils/helpers';
+
+export default function Modal({ isOpen, onClose, title, subtitle, children, size = 'md' }) {
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    if (isOpen) document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
+  // Prevent scroll when open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const sizeClasses = {
+    sm: 'max-w-md',
+    md: 'max-w-xl',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
+  };
+
+  return (
+    <div
+      className="absolute min-h-screen inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      aria-modal="true"
+      role="dialog"
+    >
+      {/* Backdrop — click to close */}
+      <div
+        className="absolute top-30 inset-0 bg-[#2D151F]/10 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal Card */}
+      <div
+        className={cn(
+          "relative w-full bg-white rounded-3xl shadow-clay-outer border border-white/50 overflow-hidden",
+          "animate-in zoom-in-95 fade-in duration-300",
+          sizeClasses[size]
+        )}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Inner highlight */}
+        <div className="absolute inset-0 rounded-3xl pointer-events-none shadow-clay-inner" />
+
+        {/* Header */}
+        <div className="flex items-start justify-between p-8 pb-6 border-b border-[#2D151F]/5">
+          <div className="space-y-0.5">
+            <h2 className="text-2xl font-black text-[#2D151F] tracking-tighter leading-none">
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="text-[10px] font-black text-[#2D151F]/30 uppercase tracking-[0.25em] mt-1">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-[#2D151F]/30 hover:text-[#2D151F] hover:bg-[#F4F3DC] transition-all duration-200 ml-4 shrink-0"
+            aria-label="Close"
+          >
+            <X size={20} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-8 overflow-y-auto max-h-[75vh]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
