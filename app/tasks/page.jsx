@@ -37,7 +37,7 @@ const STATUS_ICONS = {
 import { CardSkeleton } from '@/src/components/ui/Skeleton';
 
 export default function TasksPage() {
-  const { tasks, staff, projects, addTask, updateTask, deleteTask, loading } = useApp();
+  const { tasks = [], staff = [], projects = [], addTask, updateTask, deleteTask, loading } = useApp();
   const { user, isAdmin, hasPermission } = useAuth();
   
   const [modal, setModal] = useState(false);

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { cn, formatCurrency, formatDate } from '@/src/lib/utils';
 import { ENTRY_TYPES, ENTRY_STATUS } from '@/src/lib/constants';
+import Button from '../ui/Button';
 
 const ROLE_STYLES = {
   Admin: { badge: 'bg-purple-50 text-purple-700 border-purple-200', avatar: 'from-purple-400 to-purple-600' },
@@ -149,12 +150,12 @@ export const StaffDetailPanel = ({ person, entries = [], tasks = [], onClose }) 
                     </div>
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={onClose}
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all border border-white/10"
-                >
-                  <X size={20} strokeWidth={2.5} />
-                </button>
+                  icon={X}
+                  className="w-10 h-10 p-0 text-white/40 hover:text-white hover:bg-white/10 border border-white/10"
+                />
               </div>
 
               {person.note && (
@@ -204,18 +205,20 @@ export const StaffDetailPanel = ({ person, entries = [], tasks = [], onClose }) 
                 {/* Tabs */}
                 <div className="space-y-4 pt-2">
                   <div className="flex gap-1 p-1 bg-accounting-text/5 rounded-2xl">
-                    <button 
+                    <Button 
+                      variant={activeTab === 'finance' ? 'secondary' : 'ghost'}
                       onClick={() => setActiveTab('finance')}
-                      className={cn('flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all', activeTab === 'finance' ? 'bg-white shadow-clay-inner text-accounting-text' : 'text-accounting-text/30 hover:text-accounting-text')}
+                      className={cn('flex-1 py-3 text-[10px]', activeTab !== 'finance' && 'text-accounting-text/30 hover:text-accounting-text')}
                     >
                       Finances
-                    </button>
-                    <button 
+                    </Button>
+                    <Button 
+                      variant={activeTab === 'tasks' ? 'secondary' : 'ghost'}
                       onClick={() => setActiveTab('tasks')}
-                      className={cn('flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all', activeTab === 'tasks' ? 'bg-white shadow-clay-inner text-accounting-text' : 'text-accounting-text/30 hover:text-accounting-text')}
+                      className={cn('flex-1 py-3 text-[10px]', activeTab !== 'tasks' && 'text-accounting-text/30 hover:text-accounting-text')}
                     >
                       Task List
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="space-y-3">

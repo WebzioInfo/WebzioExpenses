@@ -14,7 +14,7 @@ const ACCOUNT_ICONS = {
 };
 
 function CompanyExpensesContent() {
-  const { entries, loading } = useApp();
+  const { entries = [], loading } = useApp();
 
   const companyExpenses = useMemo(() => {
     if (!entries) return [];

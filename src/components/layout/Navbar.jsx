@@ -6,6 +6,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { useTransactions } from '@/src/context/TransactionContext';
 import { cn } from '@/src/lib/utils';
 import Link from 'next/link';
+import Button from '../ui/Button';
 
 export const Navbar = ({ onOpenSidebar }) => {
   const { user, logout, isAdmin } = useAuth();
@@ -19,12 +20,12 @@ export const Navbar = ({ onOpenSidebar }) => {
       <div className="flex-1 flex items-center justify-between">
         {/* Left: Mobile burger */}
         <div className="flex items-center gap-4">
-          <button
+          <Button
+            variant="ghost"
             onClick={onOpenSidebar}
-            className="lg:hidden w-11 h-11 clay-btn hover:bg-accounting-text hover:text-accounting-bg transition-all shadow-clay-outer"
-          >
-            <Menu size={18} strokeWidth={2.5} />
-          </button>
+            icon={Menu}
+            className="lg:hidden w-11 h-11 p-0 clay-btn shadow-clay-outer"
+          />
           <div className="hidden lg:block">
             <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-[0.4em]">Webzio International</p>
           </div>
@@ -34,19 +35,23 @@ export const Navbar = ({ onOpenSidebar }) => {
         <div className="flex items-center gap-3">
           {/* Pending Bell */}
           <Link href="/transactions?filter=Pending" className="relative group">
-            <button className="w-11 h-11 rounded-2xl bg-white shadow-clay-inner text-accounting-text/60 hover:text-accounting-text transition-all flex items-center justify-center">
-              <Bell size={16} strokeWidth={2.5} />
+            <Button 
+              variant="outline"
+              className="w-11 h-11 p-0 rounded-2xl bg-white shadow-clay-inner border-none"
+              icon={Bell}
+            >
               {pendingCount > 0 && (
                 <div className="absolute top-2 right-2 w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
               )}
-            </button>
+            </Button>
           </Link>
 
           {/* User Menu */}
           <div className="relative">
-            <button
+            <Button
+              variant="outline"
               onClick={() => setMenuOpen(v => !v)}
-              className="flex items-center gap-3 py-2 px-3 bg-white rounded-2xl shadow-clay-inner hover:shadow-clay-outer transition-all"
+              className="flex items-center gap-3 py-2 px-3 bg-white rounded-2xl shadow-clay-inner border-none h-auto"
             >
               <div className="w-8 h-8 rounded-xl bg-accounting-text flex items-center justify-center text-accounting-bg text-[10px] font-black">
                 {user?.name?.[0]?.toUpperCase() || 'U'}
@@ -59,7 +64,7 @@ export const Navbar = ({ onOpenSidebar }) => {
                 </p>
               </div>
               <ChevronDown size={12} strokeWidth={2.5} className={cn('text-accounting-text/60 transition-transform', menuOpen && 'rotate-180')} />
-            </button>
+            </Button>
 
             {/* Dropdown */}
             {menuOpen && (
@@ -76,10 +81,15 @@ export const Navbar = ({ onOpenSidebar }) => {
                     </div>
                   </Link>
                 )}
-                <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors">
-                  <LogOut size={14} strokeWidth={2.5} />
+                <Button 
+                  onClick={logout} 
+                  variant="ghost"
+                  fullWidth
+                  icon={LogOut}
+                  className="justify-start gap-3 px-4 py-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-none h-auto"
+                >
                   <span className="text-[10px] font-black uppercase tracking-wide">Log Out</span>
-                </button>
+                </Button>
               </div>
             )}
           </div>

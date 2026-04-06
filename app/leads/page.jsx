@@ -26,7 +26,7 @@ const STATUS_CONFIG = {
 };
 
 export default function LeadsPage() {
-  const { leads, addLead, updateLead, deleteLead, addClient, loading } = useApp();
+  const { leads = [], addLead, updateLead, deleteLead, addClient, loading } = useApp();
   const { isAdmin } = useAuth();
   
   const [modal, setModal] = useState(false);

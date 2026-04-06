@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { TrendingUp, TrendingDown, Coins, Briefcase } from 'lucide-react';
 import { useApp } from '@/src/context/ExpenseContext';
 import { formatCurrency, cn } from '@/src/lib/utils';
+import Button from '@/src/components/ui/Button';
 import { MonthlyBarChart, CategoryPieChart } from '@/src/components/Charts';
 import { DATE_FILTERS } from '@/src/lib/constants';
 import { calculateStats } from '@/src/hooks/useStats';
@@ -11,7 +12,7 @@ import { calculateStats } from '@/src/hooks/useStats';
 const DATE_OPTS = ['This Month', 'Last Month', 'This Year', 'All Time'];
 
 export default function ReportsPage() {
-  const { entries, projects, loading } = useApp();
+  const { entries = [], projects = [], loading } = useApp();
   const [period, setPeriod] = useState('This Month');
 
   const filtered = useMemo(() => {
@@ -79,9 +80,15 @@ export default function ReportsPage() {
         </div>
         <div className="flex gap-2">
           {DATE_OPTS.map(d => (
-            <button key={d} onClick={() => setPeriod(d)} className={cn('h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all', period === d ? 'bg-accounting-bg text-accounting-bg shadow-clay-outer' : 'bg-white text-accounting-bg/30 hover:bg-accounting-bg shadow-clay-inner')}>
+            <Button 
+              key={d} 
+              variant={period === d ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setPeriod(d)} 
+              className={cn('px-4 rounded-xl text-[9px]', period !== d && 'bg-white text-accounting-bg/30')}
+            >
               {d}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

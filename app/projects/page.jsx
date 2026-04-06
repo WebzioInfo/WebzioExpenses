@@ -12,7 +12,7 @@ const BLANK = { name: '', clientName: '', description: '', status: 'Active' };
 import { CardSkeleton } from '@/src/components/ui/Skeleton';
 
 export default function ProjectsPage() {
-  const { projects, entries, addProject, updateProject, deleteProject, loading } = useApp();
+  const { projects = [], entries = [], addProject, updateProject, deleteProject, loading } = useApp();
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(BLANK);
@@ -84,7 +84,7 @@ export default function ProjectsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-1 ml-2 shrink-0">
-                    <div className={cn('flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-wide border shadow-clay-inner', isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-[#F4F3DC] text-[#2D151F]/40 border-[#2D151F]/10')}>
+                    <div className={cn('flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-wide border shadow-clay-inner', isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-accounting-bg text-[#2D151F]/40 border-[#2D151F]/10')}>
                       {isActive ? <CheckCircle size={10} strokeWidth={2.5} /> : <Clock size={10} strokeWidth={2.5} />}
                       {project.status || 'Active'}
                     </div>
@@ -116,7 +116,7 @@ export default function ProjectsPage() {
                     </p>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={14} onClick={() => openEdit(project)} className="w-9 h-9 p-0 text-accounting-text/60 hover:text-[#2D151F] hover:bg-[#F4F3DC]" />
+                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={14} onClick={() => openEdit(project)} className="w-9 h-9 p-0 text-accounting-text/60 hover:text-[#2D151F] hover:bg-accounting-bg" />
                     <Button variant="ghost" size="sm" icon={Trash2} iconSize={14} onClick={() => { if (confirm(`Archive "${project.name}"?`)) deleteProject(project.id); }} className="w-9 h-9 p-0 text-red-200 hover:text-red-600 hover:bg-red-50" />
                   </div>
                 </div>
@@ -147,7 +147,7 @@ export default function ProjectsPage() {
                   type="button"
                   variant={form.status === s ? 'primary' : 'outline'}
                   onClick={() => setForm(f => ({ ...f, status: s }))}
-                  className={cn('flex-1 py-3', form.status === s && s !== 'Active' && 'bg-[#F4F3DC] text-[#2D151F]')}
+                  className={cn('flex-1 py-3', form.status === s && s !== 'Active' && 'bg-accounting-bg text-[#2D151F]')}
                 >
                   {s}
                 </Button>

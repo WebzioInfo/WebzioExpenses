@@ -12,6 +12,7 @@ export const useApp = () => {
 
   return {
     // Data
+    entries: trans.transactions,
     staff: config.staff,
     people: config.staff,
     projects: config.projects,

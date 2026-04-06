@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Edit2, ShieldCheck, Download, AlertCircle, TrendingUp, TrendingDown, Coins, Briefcase, ArrowLeftRight } from 'lucide-react';
 import { useApp } from '@/src/context/ExpenseContext';
 import { formatCurrency, cn } from '@/src/lib/utils';
+import Button from '@/src/components/ui/Button';
 
 const TYPE_ICONS = {
   'Money In': { icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -15,7 +16,7 @@ const TYPE_ICONS = {
 };
 
 function PendingContent() {
-  const { entries, updateEntry, exportCSV, loading } = useApp();
+  const { entries = [], updateEntry, exportCSV, loading } = useApp();
   const router = useRouter();
 
   const pendingEntries = useMemo(() => {
@@ -54,12 +55,14 @@ function PendingContent() {
             {pendingEntries.length} items awaiting resolution
           </p>
         </div>
-        <button
+        <Button
+          variant="outline"
           onClick={() => exportCSV(pendingEntries, 'pending_payments')}
-          className="h-11 px-6 bg-white border border-amber-200 text-amber-700 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-50 transition-all shadow-clay-outer flex items-center gap-2"
+          icon={Download}
+          className="bg-white border-amber-200 text-amber-700"
         >
-          <Download size={14} strokeWidth={2.5} /> Export CSV
-        </button>
+          Export CSV
+        </Button>
       </div>
 
       {/* Summary Cards */}
@@ -116,18 +119,22 @@ function PendingContent() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => handleMarkPaid(entry)}
-                        className="h-10 px-4 bg-emerald-500 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center gap-1.5 shadow-sm"
+                        icon={ShieldCheck}
+                        className="bg-emerald-500 hover:bg-emerald-600 shadow-sm"
                       >
-                        <ShieldCheck size={14} /> Mark Paid
-                      </button>
-                      <button
+                        Mark Paid
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => router.push(`/add-transaction?edit=${entry.id}`)}
-                        className="w-10 h-10 bg-accounting-bg/40 text-[#2D151F]/40 rounded-xl flex items-center justify-center hover:bg-white hover:text-[#2D151F] transition-all"
-                      >
-                        <Edit2 size={16} strokeWidth={2.5} />
-                      </button>
+                        icon={Edit2}
+                        className="w-10 h-10 p-0 text-[#2D151F]/40"
+                      />
                     </div>
                   </div>
                 </div>

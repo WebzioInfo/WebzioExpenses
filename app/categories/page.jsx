@@ -9,7 +9,7 @@ import Button from '@/src/components/ui/Button';
 import { TableSkeleton } from '@/src/components/ui/Skeleton';
 
 function CategoriesContent() {
-  const { categories, addCategory, updateCategory, deleteCategory, loading } = useApp();
+  const { categories = [], addCategory, updateCategory, deleteCategory, loading } = useApp();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ name: '', type: 'Money Out' });
@@ -123,8 +123,20 @@ function CategoriesContent() {
                     <span className="text-sm font-black text-[#2D151F]">{cat.name}</span>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEdit(cat)} className="p-2 text-accounting-text/60 hover:text-[#2D151F] transition-colors"><Edit2 size={12} /></button>
-                    <button onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} className="p-2 text-red-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => startEdit(cat)} 
+                      icon={Edit2}
+                      className="p-2 w-8 h-8 flex items-center justify-center text-accounting-text/60 hover:text-[#2D151F]"
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} 
+                      icon={Trash2}
+                      className="p-2 w-8 h-8 flex items-center justify-center text-red-300 hover:text-red-500"
+                    />
                   </div>
                 </div>
               ))
@@ -150,8 +162,20 @@ function CategoriesContent() {
                     <span className="text-sm font-black text-[#2D151F]">{cat.name}</span>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEdit(cat)} className="p-2 text-accounting-text/60 hover:text-[#2D151F] transition-colors"><Edit2 size={12} /></button>
-                    <button onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} className="p-2 text-red-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => startEdit(cat)} 
+                      icon={Edit2}
+                      className="p-2 w-8 h-8 flex items-center justify-center text-accounting-text/60 hover:text-[#2D151F]"
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} 
+                      icon={Trash2}
+                      className="p-2 w-8 h-8 flex items-center justify-center text-red-300 hover:text-red-500"
+                    />
                   </div>
                 </div>
               ))

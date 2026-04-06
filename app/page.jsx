@@ -16,7 +16,7 @@ import { AdminDashboard } from '@/src/components/Dashboard/AdminDashboard';
 import { StaffDashboard } from '@/src/components/Dashboard/StaffDashboard';
 
 export default function Dashboard() {
-  const { entries, projects, staff, tasks, loading } = useApp();
+  const { entries = [], projects = [], staff = [], tasks = [], loading } = useApp();
   const { user, isAdmin } = useAuth();
   
   if (loading) return (

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Modal from '@/src/components/ui/Modal';
 import { Plus, Edit2, ShieldCheck, User, ToggleLeft, ToggleRight } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import Button from '@/src/components/ui/Button';
 
 const BLANK = { name: '', email: '', password: '', role: 'staff' };
 
@@ -77,15 +78,18 @@ export default function UsersPage() {
           <h1 className="text-3xl font-black text-accounting-bg tracking-tighter leading-none">Users</h1>
           <p className="text-[9px] font-black text-accounting-bg/30 uppercase tracking-[0.3em] mt-1">Manage system access</p>
         </div>
-        <button onClick={openAdd} className="h-11 px-6 bg-accounting-bg text-accounting-bg rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-clay-plum transition-all shadow-clay-outer flex items-center gap-2">
-          <Plus size={14} strokeWidth={2.5} /> Add User
-        </button>
+        <Button 
+          onClick={openAdd} 
+          icon={Plus}
+        >
+          Add User
+        </Button>
       </div>
 
       {loading ? (
         <div className="py-20 flex justify-center"><div className="w-10 h-10 bg-accounting-bg/10 rounded-2xl animate-pulse shadow-clay-inner" /></div>
       ) : (
-        <div className="clay-card overflow-hidden bg-[#1f1f1f]">
+        <div className="clay-card overflow-hidden bg-accounting-accent">
           {users.map((user, i) => (
             <div key={user.id} className={cn('flex items-center justify-between p-5 group', i > 0 && 'border-t border-accounting-bg/5', !user.isActive && 'opacity-40')}>
               <div className="flex items-center gap-4">
@@ -104,12 +108,21 @@ export default function UsersPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(user)} className="w-9 h-9 rounded-xl flex items-center justify-center text-accounting-bg/30 hover:text-accounting-bg hover:bg-accounting-bg transition-all shadow-clay-inner">
-                  <Edit2 size={14} strokeWidth={2.5} />
-                </button>
-                <button onClick={() => toggleActive(user)} className={cn('w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow-clay-inner', user.isActive ? 'text-emerald-500 hover:bg-emerald-50' : 'text-accounting-bg/20 hover:bg-accounting-bg')} title={user.isActive ? 'Disable' : 'Enable'}>
-                  {user.isActive ? <ToggleRight size={16} strokeWidth={2.5} /> : <ToggleLeft size={16} strokeWidth={2.5} />}
-                </button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => openEdit(user)} 
+                  icon={Edit2}
+                  className="w-9 h-9 p-0"
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => toggleActive(user)} 
+                  icon={user.isActive ? ToggleRight : ToggleLeft}
+                  className={cn('w-9 h-9 p-0', user.isActive ? 'text-emerald-500 hover:bg-emerald-50' : 'text-accounting-bg/20')}
+                  title={user.isActive ? 'Disable' : 'Enable'}
+                />
               </div>
             </div>
           ))}
@@ -134,18 +147,33 @@ export default function UsersPage() {
             <label className="field-label">Role</label>
             <div className="flex gap-2">
               {['admin', 'staff'].map(r => (
-                <button key={r} type="button" onClick={() => setForm(f => ({ ...f, role: r }))} className={cn('flex-1 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest border-2 transition-all', form.role === r ? 'bg-accounting-bg border-accounting-bg text-accounting-bg shadow-clay-inner' : 'border-transparent bg-accounting-bg/60 text-accounting-bg/40')}>
+                <Button 
+                  key={r} 
+                  variant={form.role === r ? 'secondary' : 'ghost'}
+                  onClick={() => setForm(f => ({ ...f, role: r }))} 
+                  className={cn('flex-1 py-3 text-[9px]', form.role !== r && 'text-accounting-bg/60')}
+                >
                   {r}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
           {error && <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">{error}</p>}
           <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} className="flex-1 h-12 bg-accounting-bg text-accounting-bg rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-clay-plum transition-all shadow-clay-outer disabled:opacity-50">
-              {saving ? 'Saving...' : editId ? 'Update User' : 'Add User'}
-            </button>
-            <button type="button" onClick={() => setModal(false)} className="h-12 px-6 clay-btn text-accounting-bg/40 text-[9px] font-black uppercase tracking-widest">Cancel</button>
+            <Button 
+              type="submit" 
+              isLoading={saving}
+              className="flex-1 h-12"
+            >
+              {editId ? 'Update User' : 'Add User'}
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => setModal(false)}
+              className="h-12 px-6"
+            >
+              Cancel
+            </Button>
           </div>
         </form>
       </Modal>

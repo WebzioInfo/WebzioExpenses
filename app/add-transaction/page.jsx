@@ -8,6 +8,7 @@ import { useApp } from '@/src/context/ExpenseContext';
 import { useAuth } from '@/src/context/AuthContext';
 import { ENTRY_TYPES, ENTRY_STATUS, ACCOUNTS, INCOME_CATEGORIES, EXPENSE_CATEGORIES, RECURRING_FREQUENCIES } from '@/src/lib/constants';
 import { cn } from '@/src/lib/utils';
+import Button from '@/src/components/ui/Button';
 
 const TYPE_OPTIONS = [
   { id: ENTRY_TYPES.MONEY_IN, label: 'Money In', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
@@ -42,7 +43,7 @@ const BLANK = {
 };
 
 function AddEntryContent() {
-  const { addEntry, updateEntry, entries, people, projects, accounts, categories: dynamicCategories } = useApp();
+  const { addEntry, updateEntry, entries = [], people = [], projects = [], accounts = [], categories: dynamicCategories = [] } = useApp();
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -105,9 +106,12 @@ function AddEntryContent() {
     <div className="max-w-3xl mx-auto py-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-5 px-1">
-        <button onClick={() => router.back()} className="w-12 h-12 clay-btn p-0 hover:bg-accounting-bg hover:text-accounting-bg transition-all">
-          <ArrowLeft size={20} strokeWidth={2.5} />
-        </button>
+        <Button 
+          variant="ghost" 
+          onClick={() => router.back()} 
+          icon={ArrowLeft}
+          className="w-12 h-12 p-0 clay-btn"
+        />
         <div>
           <h1 className="text-3xl font-black text-accounting-bg tracking-tighter leading-none">
             {editId ? 'Edit Entry' : 'Add Entry'}
@@ -125,18 +129,18 @@ function AddEntryContent() {
           <label className="field-label">Type</label>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {TYPE_OPTIONS.map(t => (
-              <button
+              <Button
                 key={t.id}
-                type="button"
+                variant={form.type === t.id ? 'secondary' : 'ghost'}
                 onClick={() => handleTypeChange(t.id)}
                 className={cn(
-                  'flex flex-col items-center gap-1.5 p-4 rounded-2xl border-2 transition-all',
-                  form.type === t.id ? `${t.bg} shadow-clay-inner` : 'border-transparent bg-accounting-bg/40 text-accounting-bg/30 hover:bg-white'
+                  'flex flex-col items-center gap-1.5 p-4 h-auto',
+                  form.type === t.id ? t.bg : 'bg-accounting-bg/40 text-accounting-bg/30 hover:bg-white'
                 )}
               >
                 <t.icon size={18} strokeWidth={2.5} className={form.type === t.id ? t.color : ''} />
                 <span className="text-[8px] font-black uppercase tracking-widest text-center leading-tight">{t.label}</span>
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -216,21 +220,21 @@ function AddEntryContent() {
               { id: 'company', label: 'General / Company', icon: Briefcase },
               { id: 'project', label: 'Project Specific', icon: TrendingUp },
             ].map(s => (
-              <button
+              <Button
                 key={s.id}
-                type="button"
+                variant={form.scope === s.id ? 'primary' : 'outline'}
                 onClick={() => {
                   set('scope', s.id);
                   if (s.id === 'company') set('projectId', '');
                 }}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-[9px] font-black uppercase tracking-widest transition-all',
-                  form.scope === s.id ? 'bg-accounting-bg text-accounting-bg shadow-clay-outer border-accounting-bg' : 'border-transparent bg-accounting-bg/40 text-accounting-bg/30'
+                  'flex-1 py-3 text-[9px]',
+                  form.scope !== s.id && 'bg-accounting-bg/40 text-accounting-bg/30 border-none'
                 )}
+                icon={s.icon}
               >
-                <s.icon size={14} strokeWidth={2.5} />
                 {s.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -276,18 +280,18 @@ function AddEntryContent() {
           <label className="field-label">Status</label>
           <div className="flex gap-2">
             {STATUS_OPTIONS.map(s => (
-              <button
+              <Button
                 key={s.id}
-                type="button"
+                variant={form.status === s.id ? 'secondary' : 'ghost'}
                 onClick={() => set('status', s.id)}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-[9px] font-black uppercase tracking-widest transition-all',
-                  form.status === s.id ? `${s.bg} shadow-clay-inner` : 'border-transparent bg-accounting-bg/40 text-accounting-bg/30'
+                  'flex-1 py-3 text-[9px]',
+                  form.status === s.id ? s.bg : 'bg-accounting-bg/40 text-accounting-bg/30'
                 )}
+                icon={s.icon}
               >
-                <s.icon size={14} strokeWidth={2.5} className={form.status === s.id ? s.color : ''} />
                 {s.id}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -299,31 +303,33 @@ function AddEntryContent() {
               <RefreshCw size={16} strokeWidth={2.5} className="text-accounting-bg/40" />
               <label className="field-label mb-0">Repeat automatically</label>
             </div>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => set('isRecurring', !form.isRecurring)}
               className={cn(
-                'w-12 h-6 rounded-full transition-all duration-300 relative',
+                'w-12 h-6 rounded-full p-0 transition-all duration-300 relative',
                 form.isRecurring ? 'bg-accounting-bg' : 'bg-accounting-bg/20'
               )}
             >
               <div className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all', form.isRecurring ? 'left-7' : 'left-1')} />
-            </button>
+            </Button>
           </div>
           {form.isRecurring && (
             <div className="flex gap-2">
               {Object.values(RECURRING_FREQUENCIES).map(f => (
-                <button
+                <Button
                   key={f}
-                  type="button"
+                  variant={form.recurringFrequency === f ? 'primary' : 'outline'}
+                  size="sm"
                   onClick={() => set('recurringFrequency', f)}
                   className={cn(
-                    'flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border',
-                    form.recurringFrequency === f ? 'bg-accounting-bg text-accounting-bg border-accounting-bg' : 'border-accounting-bg/10 text-accounting-bg/30'
+                    'flex-1 py-2 text-[9px]',
+                    form.recurringFrequency !== f && 'bg-white border-accounting-bg/10 text-accounting-bg/30'
                   )}
                 >
                   {f}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -350,21 +356,21 @@ function AddEntryContent() {
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
-          <button
+          <Button
             type="submit"
-            disabled={saving}
-            className="flex-1 h-14 bg-accounting-bg text-accounting-bg rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-clay-plum active:scale-95 transition-all shadow-clay-outer disabled:opacity-50 flex items-center justify-center gap-2"
+            isLoading={saving}
+            icon={Save}
+            className="flex-1 h-14"
           >
-            <Save size={16} strokeWidth={2.5} />
-            {saving ? 'Saving...' : editId ? 'Update Entry' : 'Save Entry'}
-          </button>
-          <button
-            type="button"
+            {editId ? 'Update Entry' : 'Save Entry'}
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => router.back()}
-            className="h-14 px-8 clay-btn text-accounting-bg/40 text-[10px] font-black uppercase tracking-widest"
+            className="h-14 px-8 text-accounting-bg/40"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
     </div>

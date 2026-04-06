@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import Button from './Button';
 
 export default function Toast({ message, type, onClose }) {
   const icons = {
@@ -40,12 +41,12 @@ export default function Toast({ message, type, onClose }) {
              <p className="text-sm font-black text-brand-dark leading-snug">{message}</p>
           </div>
         </div>
-        <button 
+        <Button 
+          variant="ghost" 
+          size="sm" 
           onClick={onClose}
-          className="p-2 bg-black/[0.03] hover:bg-black/[0.08] rounded-xl transition-all text-brand-dark/20 hover:text-brand-dark active:scale-90"
-        >
-          <X size={16} strokeWidth={3} />
-        </button>
+          icon={X}
+        />
       </div>
     </motion.div>
   );

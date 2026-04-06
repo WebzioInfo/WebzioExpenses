@@ -19,7 +19,7 @@ import {
 import { CardSkeleton } from '@/src/components/ui/Skeleton';
 
 export default function ClientsPage() {
-  const { clients, projects, addClient, updateClient, deleteClient, loading } = useApp();
+  const { clients = [], projects = [], addClient, updateClient, deleteClient, loading } = useApp();
   const { isAdmin } = useAuth();
   
   const [modal, setModal] = useState(false);

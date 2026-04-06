@@ -25,7 +25,7 @@ const STATUS_STYLES = {
 import { TableSkeleton } from '@/src/components/ui/Skeleton';
 
 function EntriesContent() {
-  const { entries, deleteEntry, people, projects, loading, exportCSV } = useApp();
+  const { entries = [], deleteEntry, people = [], projects = [], loading, exportCSV } = useApp();
   const router = useRouter();
   const searchParams = useSearchParams();
 

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { getGreeting } from '@/src/lib/utils';
+import Button from '../ui/Button';
 
 export const DashboardHeader = ({ user }) => {
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -15,10 +16,12 @@ export const DashboardHeader = ({ user }) => {
         <p className="text-[10px] font-black text-accounting-text/30 uppercase tracking-[0.3em] mt-2">{today}</p>
       </div>
       <Link href="/add-transaction">
-        <button className="h-12 px-8 bg-accounting-text text-accounting-bg rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-accounting-text/80 transition-all shadow-clay-outer flex items-center gap-2 group">
+        <Button 
+          icon={ArrowRight}
+          className="h-12 px-8 group"
+        >
           Add Entry
-          <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-        </button>
+        </Button>
       </Link>
     </div>
   );

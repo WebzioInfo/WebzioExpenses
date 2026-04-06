@@ -26,7 +26,7 @@ const ROLE_AVATAR = {
 import { CardSkeleton } from '@/src/components/ui/Skeleton';
 
 export default function StaffPage() {
-  const { staff, entries, tasks, addStaff, updateStaff, deleteStaff, loading } = useApp();
+  const { staff = [], entries = [], tasks = [], addStaff, updateStaff, deleteStaff, loading } = useApp();
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(BLANK);

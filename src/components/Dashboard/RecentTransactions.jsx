@@ -5,6 +5,7 @@ import { formatCurrency, cn } from '@/src/lib/utils';
 import { Card, CardTitle } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { ENTRY_TYPES } from '@/src/lib/constants';
+import Button from '../ui/Button';
 
 export const RecentTransactions = ({ transactions = [] }) => {
   if (transactions.length === 0) {
@@ -13,9 +14,9 @@ export const RecentTransactions = ({ transactions = [] }) => {
         <p className="text-base font-black text-accounting-text/30 uppercase tracking-tighter">No entries yet</p>
         <p className="text-[10px] font-black text-accounting-text/20 uppercase tracking-widest">Add your first entry to get started</p>
         <Link href="/add-transaction">
-          <button className="mt-2 h-10 px-6 bg-accounting-text text-accounting-bg rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-accounting-text/80 transition-all shadow-clay-outer">
+          <Button className="mt-2 h-10 px-6">
             Add Entry
-          </button>
+          </Button>
         </Link>
       </Card>
     );

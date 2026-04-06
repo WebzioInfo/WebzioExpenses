@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import Button from './Button';
 
 export default function Modal({ isOpen, onClose, title, subtitle, children, size = 'md' }) {
   // Close on Escape key
@@ -63,13 +64,13 @@ export default function Modal({ isOpen, onClose, title, subtitle, children, size
               </p>
             )}
           </div>
-          <button
+          <Button 
+            variant="ghost" 
             onClick={onClose}
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-accounting-text/60 hover:text-accounting-text hover:bg-accounting-bg transition-all duration-200 ml-4 shrink-0"
+            icon={X}
+            className="w-10 h-10 p-0"
             aria-label="Close"
-          >
-            <X size={20} strokeWidth={2.5} />
-          </button>
+          />
         </div>
 
         {/* Body */}
