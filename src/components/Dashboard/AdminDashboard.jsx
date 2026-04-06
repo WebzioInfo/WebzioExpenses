@@ -7,7 +7,7 @@ import { RecentTransactions } from './RecentTransactions';
 import { AlertCircle } from 'lucide-react';
 import { formatCurrency } from '@/src/lib/utils';
 
-export const AdminDashboard = ({ user, entries, projects, staff, tasks }) => {
+export const AdminDashboard = ({ user, entries = [], projects = [], staff = [], tasks = [] }) => {
   const stats = useStats(entries);
   
   const crmStats = useMemo(() => {

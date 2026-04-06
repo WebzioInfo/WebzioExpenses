@@ -48,7 +48,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
           <div className="px-3 mb-10">
             <Link href="/" className="flex items-center gap-3 group">
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-clay-outer relative after:absolute after:inset-0 after:rounded-2xl after:shadow-clay-inner group-hover:scale-105 transition-transform overflow-hidden p-2.5">
-                <Image src="/assets/logos/WEBZIOLOGO5-01-CROPPEDFOR LOGO.png" alt="Webzio" width={36} height={36} className="object-contain" priority />
+                <Image src="/assets/logos/WEBZIOLOGO5-01-CROPPEDFOR_LOGO.png" alt="Webzio" width={36} height={36} className="object-contain" priority />
               </div>
               <div>
                 <span className="font-black text-xl tracking-tighter text-accounting-text leading-none uppercase block">Webzio</span>
