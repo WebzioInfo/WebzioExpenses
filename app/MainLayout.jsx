@@ -9,11 +9,11 @@ import { useAuth } from '@/src/context/AuthContext';
 import { Skeleton } from '@/src/components/ui/Skeleton';
 
 // Pages that don't need the main layout (full-screen)
-const PUBLIC_PATHS = ['/login', '/setup'];
+const PUBLIC_PATHS = ['/login'];
 
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, loading, needsSetup, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -21,16 +21,14 @@ export default function MainLayout({ children }) {
 
   useEffect(() => {
     if (!loading) {
-      if (needsSetup) {
-        if (pathname !== '/setup') router.replace('/setup');
-      } else if (!isAuthenticated) {
+      if (!isAuthenticated) {
         if (!isPublic) router.replace('/login');
       } else if (isAuthenticated && isPublic) {
-        // Logged in user on login/setup page — go home
+        // Logged in user on login page — go home
         router.replace('/');
       }
     }
-  }, [loading, isAuthenticated, isPublic, needsSetup, router, pathname]);
+  }, [loading, isAuthenticated, isPublic, router, pathname]);
 
   // While checking auth, show premium loader
   if (loading) {
