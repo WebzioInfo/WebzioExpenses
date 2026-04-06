@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { cn } from '@/src/utils/helpers';
+import { cn } from '@/src/lib/utils';
 
 export default function Toast({ message, type, onClose }) {
   const icons = {

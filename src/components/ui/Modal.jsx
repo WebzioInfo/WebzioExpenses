@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@/src/utils/helpers';
+import { cn } from '@/src/lib/utils';
 
 export default function Modal({ isOpen, onClose, title, subtitle, children, size = 'md' }) {
   // Close on Escape key
@@ -35,7 +35,7 @@ export default function Modal({ isOpen, onClose, title, subtitle, children, size
     >
       {/* Backdrop — click to close */}
       <div
-        className="absolute top-30 inset-0 bg-[#2D151F]/10 backdrop-blur-sm"
+        className="absolute top-30 inset-0 bg-accounting-text/10 backdrop-blur-sm"
         onClick={onClose}
       />
 
@@ -52,20 +52,20 @@ export default function Modal({ isOpen, onClose, title, subtitle, children, size
         <div className="absolute inset-0 rounded-3xl pointer-events-none shadow-clay-inner" />
 
         {/* Header */}
-        <div className="flex items-start justify-between p-8 pb-6 border-b border-[#2D151F]/5">
+        <div className="flex items-start justify-between p-8 pb-6 border-b border-accounting-text/5">
           <div className="space-y-0.5">
-            <h2 className="text-2xl font-black text-[#2D151F] tracking-tighter leading-none">
+            <h2 className="text-2xl font-black text-accounting-text tracking-tighter leading-none">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-[10px] font-black text-[#2D151F]/30 uppercase tracking-[0.25em] mt-1">
+              <p className="text-[10px] font-black text-accounting-text/60 uppercase tracking-[0.25em] mt-1">
                 {subtitle}
               </p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-[#2D151F]/30 hover:text-[#2D151F] hover:bg-[#F4F3DC] transition-all duration-200 ml-4 shrink-0"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-accounting-text/60 hover:text-accounting-text hover:bg-accounting-bg transition-all duration-200 ml-4 shrink-0"
             aria-label="Close"
           >
             <X size={20} strokeWidth={2.5} />

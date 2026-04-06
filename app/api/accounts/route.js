@@ -26,6 +26,23 @@ export async function POST(request) {
   }
 }
 
+export async function PUT(request) {
+  try {
+    const { id, name, type } = await request.json();
+    if (!id || !name) {
+      return NextResponse.json({ error: 'ID and Name are required' }, { status: 400 });
+    }
+    await pool.query(
+      'UPDATE accounts SET name=?, type=? WHERE id=?',
+      [name, type || 'other', id]
+    );
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('DB Error:', error);
+    return NextResponse.json({ error: 'Failed to update account' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);

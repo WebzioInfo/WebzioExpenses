@@ -1,0 +1,69 @@
+
+TABLE: accounts
+  id                   | varchar(50)
+  name                 | varchar(255)
+  type                 | varchar(50)
+  balance              | decimal(15,2)
+  isActive             | tinyint(1)
+  created_at           | timestamp
+
+TABLE: categories
+  id                   | varchar(50)
+  name                 | varchar(255)
+  type                 | varchar(50)
+  isActive             | tinyint(1)
+  created_at           | timestamp
+
+TABLE: people
+  id                   | varchar(50)
+  name                 | varchar(255)
+  role                 | varchar(100)
+  note                 | text
+  created_at           | timestamp
+  isActive             | tinyint(1)
+
+TABLE: projects
+  id                   | varchar(50)
+  name                 | varchar(255)
+  clientName           | varchar(255)
+  status               | enum('Active','Lead','Completed','On-Hold')
+  description          | text
+  created_at           | timestamp
+  isActive             | tinyint(1)
+
+TABLE: recurring_rules
+  id                   | varchar(50)
+  transaction_template_id | varchar(50)
+  frequency            | varchar(50)
+  next_date            | date
+  isActive             | tinyint(1)
+  created_at           | timestamp
+
+TABLE: transactions
+  id                   | varchar(50)
+  type                 | varchar(10)
+  title                | varchar(255)
+  amount               | decimal(12,2)
+  category             | varchar(100)
+  subcategory          | varchar(100)
+  project_name         | varchar(255)
+  projectId            | varchar(50)
+  personId             | varchar(50)
+  paymentMethod        | varchar(100)
+  date                 | date
+  status               | varchar(20)
+  notes                | text
+  created_at           | timestamp
+  account              | varchar(100)
+  destination_account_id | varchar(50)
+  isActive             | tinyint(1)
+  createdBy            | varchar(255)
+
+TABLE: users
+  id                   | varchar(50)
+  name                 | varchar(255)
+  email                | varchar(255)
+  password             | varchar(255)
+  role                 | varchar(50)
+  isActive             | tinyint(1)
+  created_at           | timestamp

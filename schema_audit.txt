@@ -1,6 +1,0 @@
-accounts: [id, name, type, balance, isActive, created_at]
-people: [id, name, role, note, created_at, isActive]
-projects: [id, name, client_id, status, description, created_at, isActive]
-recurring_rules: [id, transaction_template_id, frequency, next_date, isActive, created_at]
-transactions: [id, type, title, amount, category, subcategory, project_name, project_id, person_id, payment_method, date, status, notes, created_at, account, isActive, createdBy]
-users: [id, name, email, password, role, isActive, created_at]

@@ -3,7 +3,10 @@
 import React, { useState, Suspense } from 'react';
 import { Tag, Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import { useApp } from '@/src/context/ExpenseContext';
-import { cn } from '@/src/utils/helpers';
+import { cn } from '@/src/lib/utils';
+import Button from '@/src/components/ui/Button';
+
+import { TableSkeleton } from '@/src/components/ui/Skeleton';
 
 function CategoriesContent() {
   const { categories, addCategory, updateCategory, deleteCategory, loading } = useApp();
@@ -36,8 +39,14 @@ function CategoriesContent() {
   };
 
   if (loading) return (
-    <div className="space-y-4 py-8 animate-pulse">
-      {[1, 2, 3, 4].map(i => <div key={i} className="h-16 bg-white/40 rounded-2xl shadow-clay-inner" />)}
+    <div className="space-y-8 py-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
+        <div className="space-y-2"><div className="w-48 h-8 bg-[#2D151F]/10 rounded-xl animate-pulse" /><div className="w-24 h-3 bg-[#2D151F]/10 rounded-lg animate-pulse" /></div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <TableSkeleton />
+        <TableSkeleton />
+      </div>
     </div>
   );
 
@@ -51,15 +60,10 @@ function CategoriesContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
           <h1 className="text-3xl font-black text-[#2D151F] tracking-tighter leading-none">Categories</h1>
-          <p className="text-[9px] font-black text-[#2D151F]/30 uppercase tracking-[0.3em] mt-1">Manage find-tuned expense and income labels</p>
+          <p className="text-[9px] font-black text-accounting-text/60 uppercase tracking-[0.3em] mt-1">Manage find-tuned expense and income labels</p>
         </div>
         {!isAdding && (
-          <button
-            onClick={() => setIsAdding(true)}
-            className="h-11 px-7 bg-[#2D151F] text-accounting-bg rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-clay-plum transition-all shadow-clay-outer flex items-center gap-2"
-          >
-            <Plus size={14} strokeWidth={2.5} /> New Category
-          </button>
+          <Button onClick={() => setIsAdding(true)} icon={Plus}>New Category</Button>
         )}
       </div>
 
@@ -67,7 +71,7 @@ function CategoriesContent() {
         <div className="clay-card p-6 animate-in slide-in-from-top duration-300">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 space-y-1">
-              <label className="text-[9px] font-black text-[#2D151F]/40 uppercase tracking-widest ml-1">Category Name</label>
+              <label className="text-[9px] font-black text-accounting-text/60 uppercase tracking-widest ml-1">Category Name</label>
               <input
                 required
                 className="clay-input w-full h-11 text-sm"
@@ -78,7 +82,7 @@ function CategoriesContent() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-[#2D151F]/40 uppercase tracking-widest ml-1">Type</label>
+              <label className="text-[9px] font-black text-accounting-text/60 uppercase tracking-widest ml-1">Type</label>
               <select 
                 className="clay-input h-11 text-sm w-full sm:w-40" 
                 value={form.type} 
@@ -89,19 +93,12 @@ function CategoriesContent() {
               </select>
             </div>
             <div className="flex items-end gap-2">
-              <button
-                type="submit"
-                className="h-11 px-6 bg-[#2D151F] text-accounting-bg rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-clay-plum transition-all flex-1 sm:flex-none"
-              >
+              <Button type="submit" isLoading={false} className="h-11 px-6">
                 {editingId ? 'Update' : 'Save'}
-              </button>
-              <button
-                type="button"
-                onClick={resetForm}
-                className="h-11 px-6 bg-accounting-bg text-[#2D151F]/60 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all flex-1 sm:flex-none"
-              >
+              </Button>
+              <Button variant="outline" type="button" onClick={resetForm} className="h-11 px-6 text-[#2D151F]">
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -115,7 +112,7 @@ function CategoriesContent() {
           </h2>
           <div className="clay-card overflow-hidden">
             {categoriesByType['Money In'].length === 0 ? (
-              <p className="p-10 text-center text-[10px] font-black text-[#2D151F]/20 uppercase">No income categories</p>
+              <p className="p-10 text-center text-[10px] font-black text-accounting-text/50 uppercase">No income categories</p>
             ) : (
               categoriesByType['Money In'].map((cat, i) => (
                 <div key={cat.id} className={cn('flex items-center justify-between p-4 group hover:bg-accounting-bg/20 transition-colors', i > 0 && 'border-t border-[#2D151F]/5')}>
@@ -126,7 +123,7 @@ function CategoriesContent() {
                     <span className="text-sm font-black text-[#2D151F]">{cat.name}</span>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEdit(cat)} className="p-2 text-[#2D151F]/30 hover:text-[#2D151F] transition-colors"><Edit2 size={12} /></button>
+                    <button onClick={() => startEdit(cat)} className="p-2 text-accounting-text/60 hover:text-[#2D151F] transition-colors"><Edit2 size={12} /></button>
                     <button onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} className="p-2 text-red-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
                   </div>
                 </div>
@@ -142,7 +139,7 @@ function CategoriesContent() {
           </h2>
           <div className="clay-card overflow-hidden">
             {categoriesByType['Money Out'].length === 0 ? (
-              <p className="p-10 text-center text-[10px] font-black text-[#2D151F]/20 uppercase">No expense categories</p>
+              <p className="p-10 text-center text-[10px] font-black text-accounting-text/50 uppercase">No expense categories</p>
             ) : (
               categoriesByType['Money Out'].map((cat, i) => (
                 <div key={cat.id} className={cn('flex items-center justify-between p-4 group hover:bg-accounting-bg/20 transition-colors', i > 0 && 'border-t border-[#2D151F]/5')}>
@@ -153,7 +150,7 @@ function CategoriesContent() {
                     <span className="text-sm font-black text-[#2D151F]">{cat.name}</span>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEdit(cat)} className="p-2 text-[#2D151F]/30 hover:text-[#2D151F] transition-colors"><Edit2 size={12} /></button>
+                    <button onClick={() => startEdit(cat)} className="p-2 text-accounting-text/60 hover:text-[#2D151F] transition-colors"><Edit2 size={12} /></button>
                     <button onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} className="p-2 text-red-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
                   </div>
                 </div>

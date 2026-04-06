@@ -8,30 +8,30 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [needsSetup, setNeedsSetup] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   const checkAuth = async () => {
     try {
-      // Check for local storage session
-      const storedUser = localStorage.getItem('webzio_currentUser');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
+      // First, check if system needs setup
+      const setupRes = await fetch('/api/auth/setup');
+      if (setupRes.ok) {
+        const setupData = await setupRes.json();
+        setNeedsSetup(setupData.needsSetup);
+      }
 
-        // Re-validate session with API
-        const res = await fetch('/api/auth/me', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: userData.id })
-        });
+      // Server-side session validation
+      const res = await fetch('/api/auth/me', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          localStorage.removeItem('webzio_currentUser');
-          setUser(null);
-        }
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
       }
     } catch (err) {
       console.error('Auth check error:', err);
@@ -54,7 +54,6 @@ export const AuthProvider = ({ children }) => {
     if (res.ok) {
       const data = await res.json();
       setUser(data.user);
-      localStorage.setItem('webzio_currentUser', JSON.stringify(data.user));
       router.push('/');
     } else {
       const err = await res.json();
@@ -62,45 +61,58 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // const setup = async (userData) => {
-  //   const res = await fetch('/api/auth/setup', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify(userData)
-  //   });
+  const setup = async (userData) => {
+    const res = await fetch('/api/auth/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
 
-  //   if (res.ok) {
-  //     const data = await res.json();
-  //     setUser(data.user);
-  //     localStorage.setItem('webzio_currentUser', JSON.stringify(data.user));
-  //     setNeedsSetup(false);
-  //     router.push('/');
-  //   } else {
-  //     const err = await res.json();
-  //     throw new Error(err.error || 'Setup failed');
-  //   }
-  // };
+    if (res.ok) {
+      const data = await res.json();
+      setUser(data.user);
+      setNeedsSetup(false);
+      router.push('/');
+    } else {
+      const err = await res.json();
+      throw new Error(err.error || 'Setup failed');
+    }
+  };
 
-  const logout = () => {
-    localStorage.removeItem('webzio_currentUser');
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
     setUser(null);
     router.push('/login');
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isAdmin: user?.role === 'admin',
-        login,
-        logout,
-        isAuthenticated: !!user
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+    const hasPermission = (moduleName) => {
+      if (user?.role === 'admin') return true;
+      if (!user?.permissions) return false;
+      return user.permissions.includes(moduleName);
+    };
+
+    return (
+      <AuthContext.Provider
+        value={{
+          user,
+          loading,
+          needsSetup,
+          isAdmin: user?.role === 'admin',
+          permissions: user?.permissions || [],
+          hasPermission,
+          login,
+          logout,
+          setup,
+          isAuthenticated: !!user
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => useContext(AuthContext);

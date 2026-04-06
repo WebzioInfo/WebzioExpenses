@@ -3,9 +3,10 @@
 import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Filter, Edit2, Trash2, TrendingUp, TrendingDown, Coins, Briefcase, ArrowLeftRight, Tag, Folder, AlertCircle, ShieldCheck, XCircle, Plus, Download } from 'lucide-react';
+import Button from '@/src/components/ui/Button';
 import { useApp } from '@/src/context/ExpenseContext';
-import { formatCurrency, formatDate, cn } from '@/src/utils/helpers';
-import { ENTRY_TYPES, DATE_FILTERS } from '@/src/utils/constants';
+import { formatCurrency, formatDate, cn } from '@/src/lib/utils';
+import { ENTRY_TYPES, DATE_FILTERS } from '@/src/lib/constants';
 
 const TYPE_ICONS = {
   'Money In': { icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -20,6 +21,8 @@ const STATUS_STYLES = {
   'Pending': 'bg-amber-50 text-amber-700 border-amber-200',
   'Cancelled': 'bg-red-50 text-red-600 border-red-200',
 };
+
+import { TableSkeleton } from '@/src/components/ui/Skeleton';
 
 function EntriesContent() {
   const { entries, deleteEntry, people, projects, loading, exportCSV } = useApp();
@@ -89,8 +92,11 @@ function EntriesContent() {
   }, [filtered]);
 
   if (loading) return (
-    <div className="space-y-4 py-8 animate-pulse">
-      {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-16 bg-white/40 rounded-2xl shadow-clay-inner" />)}
+    <div className="space-y-6 py-6">
+      <div className="flex items-center justify-between px-1">
+        <div className="space-y-2"><div className="w-48 h-8 bg-accounting-text/10 rounded-xl animate-pulse" /><div className="w-24 h-3 bg-accounting-text/10 rounded-lg animate-pulse" /></div>
+      </div>
+      <TableSkeleton />
     </div>
   );
 
@@ -99,22 +105,24 @@ function EntriesContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
-          <h1 className="text-3xl font-black text-[#2D151F] tracking-tighter leading-none">Entries</h1>
-          <p className="text-[9px] font-black text-[#2D151F]/30 uppercase tracking-[0.3em] mt-1">{entries.length} total entries</p>
+          <h1 className="text-3xl font-black text-accounting-text tracking-tighter leading-none">Entries</h1>
+          <p className="text-[9px] font-black text-accounting-text/30 uppercase tracking-[0.3em] mt-1">{entries.length} total entries</p>
         </div>
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="outline"
+            icon={Download}
             onClick={() => exportCSV(filtered)}
-            className="h-11 px-6 bg-white border border-[#2D151F]/10 text-[#2D151F]/60 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#F4F3DC]/40 transition-all shadow-clay-outer flex items-center gap-2"
           >
-            <Download size={14} strokeWidth={2.5} /> Export CSV
-          </button>
-          <button
+            Export CSV
+          </Button>
+          <Button
+            variant="secondary"
+            icon={Plus}
             onClick={() => router.push('/add-transaction')}
-            className="h-11 px-7 bg-[#2D151F] text-[#F4F3DC] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#4A2B3A] transition-all shadow-clay-outer flex items-center gap-2"
           >
-            <Plus size={14} strokeWidth={2.5} /> Add Entry
-          </button>
+            Add Entry
+          </Button>
         </div>
       </div>
 
@@ -122,7 +130,7 @@ function EntriesContent() {
       <div className="clay-card p-5 space-y-4">
         {/* Search */}
         <div className="relative">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2D151F]/30" strokeWidth={2.5} />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-accounting-text/30" strokeWidth={2.5} />
           <input
             className="clay-input w-full pl-11 h-11 text-sm"
             placeholder="Search by title, staff, or project..."
@@ -162,16 +170,15 @@ function EntriesContent() {
         {/* Date Quick Filters */}
         <div className="flex flex-wrap gap-2">
           {['All', ...Object.values(DATE_FILTERS)].map(df => (
-            <button
+            <Button
               key={df}
+              size="sm"
+              variant={dateFilter === df ? 'primary' : 'outline'}
               onClick={() => setDateFilter(df)}
-              className={cn(
-                'h-8 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
-                dateFilter === df ? 'bg-[#2D151F] text-[#F4F3DC] shadow-clay-outer' : 'bg-[#F4F3DC]/60 text-[#2D151F]/40 hover:bg-white'
-              )}
+              className={cn('h-8 px-4', dateFilter !== df && 'bg-accounting-bg/60 border-transparent text-accounting-text/40 hover:bg-white')}
             >
               {df}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -179,7 +186,7 @@ function EntriesContent() {
       {/* Summary bar */}
       {filtered.length > 0 && (
         <div className="flex items-center justify-between px-2">
-          <p className="text-[9px] font-black text-[#2D151F]/30 uppercase tracking-widest">{filtered.length} entries shown</p>
+          <p className="text-[9px] font-black text-accounting-text/30 uppercase tracking-widest">{filtered.length} entries shown</p>
           <div className="flex gap-4">
             <span className="text-[9px] font-black text-emerald-600 uppercase">In: {formatCurrency(totals.moneyIn)}</span>
             <span className="text-[9px] font-black text-red-500 uppercase">Out: {formatCurrency(totals.moneyOut)}</span>
@@ -190,15 +197,15 @@ function EntriesContent() {
       {/* Table */}
       {filtered.length === 0 ? (
         <div className="clay-card p-20 flex flex-col items-center text-center space-y-3">
-          <p className="text-base font-black text-[#2D151F]/30 uppercase tracking-tighter">No data available</p>
-          <p className="text-[9px] font-black text-[#2D151F]/20 uppercase tracking-widest">Try adjusting your filters or add a new entry</p>
+          <p className="text-base font-black text-accounting-text/30 uppercase tracking-tighter">No data available</p>
+          <p className="text-[9px] font-black text-accounting-text/20 uppercase tracking-widest">Try adjusting your filters or add a new entry</p>
         </div>
       ) : (
         <div className="clay-card overflow-hidden">
           {/* Table Header */}
-          <div className="hidden lg:grid grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-0 px-6 py-4 border-b border-[#2D151F]/5 bg-[#F4F3DC]/40">
+          <div className="hidden lg:grid grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-0 px-6 py-4 border-b border-accounting-bg/5 bg-accounting-bg/40">
             {['Date', 'Title', 'Type', 'Account', 'Amount', 'Actions'].map(h => (
-              <p key={h} className="text-[8px] font-black text-[#2D151F]/30 uppercase tracking-[0.25em]">{h}</p>
+              <p key={h} className="text-[8px] font-black text-accounting-text/30 uppercase tracking-[0.25em]">{h}</p>
             ))}
           </div>
 
@@ -211,20 +218,20 @@ function EntriesContent() {
             return (
               <div
                 key={entry.id}
-                className={cn('group grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-3 lg:gap-0 items-center px-6 py-5 hover:bg-[#F4F3DC]/20 transition-colors', i > 0 && 'border-t border-[#2D151F]/5')}
+                className={cn('group grid grid-cols-1 lg:grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-3 lg:gap-0 items-center px-6 py-5 hover:bg-accounting-bg/20 transition-colors', i > 0 && 'border-t border-accounting-bg/5')}
               >
                 {/* Date */}
                 <div>
-                  <p className="text-xs font-black text-[#2D151F]/60">{entry.date}</p>
+                  <p className="text-xs font-black text-accounting-text/60">{entry.date}</p>
                 </div>
 
                 {/* Title */}
                 <div className="space-y-1">
-                  <p className="font-black text-[#2D151F] text-sm group-hover:translate-x-0.5 transition-transform">{entry.title}</p>
+                  <p className="font-black text-accounting-text text-sm group-hover:translate-x-0.5 transition-transform">{entry.title}</p>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {entry.category && <span className="px-2 py-0.5 text-[8px] font-black text-[#2D151F]/40 bg-[#F4F3DC] rounded-lg uppercase tracking-wide">{entry.category}</span>}
+                    {entry.category && <span className="px-2 py-0.5 text-[8px] font-black text-accounting-text/40 bg-accounting-bg rounded-lg uppercase tracking-wide">{entry.category}</span>}
                     {entry.personName && (
-                      <span className="px-2 py-0.5 text-[8px] font-black text-[#2D151F]/40 bg-[#2D151F]/5 rounded-lg uppercase tracking-wide">{entry.personName}</span>
+                      <span className="px-2 py-0.5 text-[8px] font-black text-accounting-text/40 bg-accounting-bg/5 rounded-lg uppercase tracking-wide">{entry.personName}</span>
                     )}
                     {entry.projectName && (
                       <span className="px-2 py-0.5 text-[8px] font-black text-blue-600/60 bg-blue-50 rounded-lg uppercase tracking-wide flex items-center gap-1">
@@ -250,7 +257,7 @@ function EntriesContent() {
 
                 {/* Account */}
                 <div>
-                  <span className="text-xs font-black text-[#2D151F]/40">{entry.account || '—'}</span>
+                  <span className="text-xs font-black text-accounting-text/40">{entry.account || '—'}</span>
                 </div>
 
                 {/* Amount */}
@@ -262,20 +269,22 @@ function EntriesContent() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={Edit2}
+                    iconSize={14}
                     onClick={() => router.push(`/add-transaction?edit=${entry.id}`)}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-[#2D151F]/40 hover:text-[#2D151F] hover:bg-white transition-all shadow-clay-inner"
-                    title="Edit"
-                  >
-                    <Edit2 size={14} strokeWidth={2.5} />
-                  </button>
-                  <button
+                    className="w-9 h-9 p-0"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={Trash2}
+                    iconSize={14}
                     onClick={() => { if (confirm('Delete this entry?')) deleteEntry(entry.id); }}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-red-300 hover:text-red-600 hover:bg-red-50 transition-all shadow-clay-inner"
-                    title="Delete"
-                  >
-                    <Trash2 size={14} strokeWidth={2.5} />
-                  </button>
+                    className="w-9 h-9 p-0 text-red-300 hover:text-red-600 hover:bg-red-50"
+                  />
                 </div>
               </div>
             );
@@ -288,7 +297,7 @@ function EntriesContent() {
 
 export default function TransactionsPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center"><div className="w-10 h-10 bg-[#2D151F]/10 rounded-2xl animate-pulse shadow-clay-inner mx-auto" /></div>}>
+    <Suspense fallback={<div className="py-20 text-center"><div className="w-10 h-10 bg-accounting-bg/10 rounded-2xl animate-pulse shadow-clay-inner mx-auto" /></div>}>
       <EntriesContent />
     </Suspense>
   );

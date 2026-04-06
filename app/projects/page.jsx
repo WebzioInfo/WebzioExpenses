@@ -2,11 +2,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { useApp } from '@/src/context/ExpenseContext';
-import { formatCurrency, cn } from '@/src/utils/helpers';
+import { formatCurrency, cn } from '@/src/lib/utils';
 import Modal from '@/src/components/ui/Modal';
 import { Plus, Edit2, Trash2, TrendingUp, TrendingDown, CheckCircle, Clock } from 'lucide-react';
+import Button from '@/src/components/ui/Button';
 
 const BLANK = { name: '', clientName: '', description: '', status: 'Active' };
+
+import { CardSkeleton } from '@/src/components/ui/Skeleton';
 
 export default function ProjectsPage() {
   const { projects, entries, addProject, updateProject, deleteProject, loading } = useApp();
@@ -35,7 +38,16 @@ export default function ProjectsPage() {
     return { income, expense, profit: income - expense, count: tx.length };
   };
 
-  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 bg-[#2D151F]/10 rounded-2xl animate-pulse shadow-clay-inner" /></div>;
+  if (loading) return (
+    <div className="space-y-8 py-6">
+      <div className="flex items-center justify-between px-1">
+        <div className="space-y-2"><div className="w-48 h-8 bg-[#2D151F]/10 rounded-xl animate-pulse" /><div className="w-24 h-3 bg-[#2D151F]/10 rounded-lg animate-pulse" /></div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {[1, 2, 3, 4, 5, 6].map(i => <CardSkeleton key={i} />)}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -44,21 +56,17 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-between px-1">
         <div>
           <h1 className="text-3xl font-black text-[#2D151F] tracking-tighter leading-none">Projects</h1>
-          <p className="text-[9px] font-black text-[#2D151F]/30 uppercase tracking-[0.3em] mt-1">{projects.length} active projects</p>
+          <p className="text-[9px] font-black text-accounting-text/60 uppercase tracking-[0.3em] mt-1">{projects.length} active projects</p>
         </div>
-        <button onClick={openAdd} className="h-11 px-7 bg-[#2D151F] text-[#F4F3DC] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#4A2B3A] transition-all shadow-clay-outer flex items-center gap-2">
-          <Plus size={14} strokeWidth={2.5} /> Add Project
-        </button>
+        <Button onClick={openAdd} icon={Plus}>Add Project</Button>
       </div>
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
         <div className="clay-card p-20 flex flex-col items-center text-center space-y-3">
-          <p className="text-base font-black text-[#2D151F]/30 uppercase tracking-tighter">No projects yet</p>
-          <p className="text-[9px] font-black text-[#2D151F]/20 uppercase tracking-widest">Add your first project to start tracking</p>
-          <button onClick={openAdd} className="mt-3 h-10 px-6 bg-[#2D151F] text-[#F4F3DC] rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#4A2B3A] transition-all shadow-clay-outer">
-            Add Project
-          </button>
+          <p className="text-base font-black text-accounting-text/60 uppercase tracking-tighter">No projects yet</p>
+          <p className="text-[9px] font-black text-accounting-text/50 uppercase tracking-widest">Add your first project to start tracking</p>
+          <Button onClick={openAdd} icon={Plus} className="mt-3">Add Project</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -72,7 +80,7 @@ export default function ProjectsPage() {
                   <div className="space-y-1 flex-1 min-w-0">
                     <h3 className="font-black text-[#2D151F] text-lg tracking-tighter leading-tight truncate">{project.name}</h3>
                     {project.clientName && (
-                      <p className="text-[9px] font-black text-[#2D151F]/30 uppercase tracking-widest">{project.clientName}</p>
+                      <p className="text-[9px] font-black text-accounting-text/60 uppercase tracking-widest">{project.clientName}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 ml-2 shrink-0">
@@ -102,18 +110,14 @@ export default function ProjectsPage() {
                 {/* Profit */}
                 <div className="flex items-center justify-between pt-2 border-t border-[#2D151F]/5">
                   <div>
-                    <p className="text-[8px] font-black text-[#2D151F]/30 uppercase tracking-widest">Profit</p>
+                    <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-widest">Profit</p>
                     <p className={cn('text-2xl font-black tracking-tighter', stats.profit >= 0 ? 'text-[#2D151F]' : 'text-red-600')}>
                       {formatCurrency(stats.profit)}
                     </p>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => openEdit(project)} className="w-9 h-9 rounded-xl flex items-center justify-center text-[#2D151F]/30 hover:text-[#2D151F] hover:bg-[#F4F3DC] transition-all shadow-clay-inner">
-                      <Edit2 size={14} strokeWidth={2.5} />
-                    </button>
-                    <button onClick={() => { if (confirm(`Archive "${project.name}"?`)) deleteProject(project.id); }} className="w-9 h-9 rounded-xl flex items-center justify-center text-red-200 hover:text-red-600 hover:bg-red-50 transition-all shadow-clay-inner">
-                      <Trash2 size={14} strokeWidth={2.5} />
-                    </button>
+                    <Button variant="ghost" size="sm" icon={Edit2} iconSize={14} onClick={() => openEdit(project)} className="w-9 h-9 p-0 text-accounting-text/60 hover:text-[#2D151F] hover:bg-[#F4F3DC]" />
+                    <Button variant="ghost" size="sm" icon={Trash2} iconSize={14} onClick={() => { if (confirm(`Archive "${project.name}"?`)) deleteProject(project.id); }} className="w-9 h-9 p-0 text-red-200 hover:text-red-600 hover:bg-red-50" />
                   </div>
                 </div>
               </div>
@@ -138,10 +142,15 @@ export default function ProjectsPage() {
             <label className="field-label">Status</label>
             <div className="flex gap-2">
               {['Active', 'Completed'].map(s => (
-                <button key={s} type="button" onClick={() => setForm(f => ({ ...f, status: s }))}
-                  className={cn('flex-1 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest border-2 transition-all', form.status === s ? (s === 'Active' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-clay-inner' : 'bg-[#F4F3DC] border-[#2D151F]/10 text-[#2D151F] shadow-clay-inner') : 'border-transparent text-[#2D151F]/30')}>
+                <Button
+                  key={s}
+                  type="button"
+                  variant={form.status === s ? 'primary' : 'outline'}
+                  onClick={() => setForm(f => ({ ...f, status: s }))}
+                  className={cn('flex-1 py-3', form.status === s && s !== 'Active' && 'bg-[#F4F3DC] text-[#2D151F]')}
+                >
                   {s}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -150,10 +159,10 @@ export default function ProjectsPage() {
             <textarea className="clay-input w-full resize-none text-sm" rows={3} placeholder="Optional notes..." value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
           <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} className="flex-1 h-12 bg-[#2D151F] text-[#F4F3DC] rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#4A2B3A] transition-all shadow-clay-outer disabled:opacity-50">
-              {saving ? 'Saving...' : editId ? 'Update Project' : 'Add Project'}
-            </button>
-            <button type="button" onClick={closeModal} className="h-12 px-6 clay-btn text-[#2D151F]/40 text-[9px] font-black uppercase tracking-widest">Cancel</button>
+            <Button type="submit" isLoading={saving} className="flex-1 h-12">
+              {editId ? 'Update Project' : 'Add Project'}
+            </Button>
+            <Button variant="outline" type="button" onClick={closeModal} className="h-12 px-6 text-[#2D151F]">Cancel</Button>
           </div>
         </form>
       </Modal>

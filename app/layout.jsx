@@ -1,11 +1,13 @@
 import './globals.css';
 import { ToastProvider } from '@/src/context/ToastContext';
 import { AuthProvider } from '@/src/context/AuthContext';
-import { AppProvider } from '@/src/context/ExpenseContext';
+import { ConfigProvider } from '@/src/context/ConfigContext';
+import { TransactionProvider } from '@/src/context/TransactionContext';
+
 import MainLayout from './MainLayout';
 
 export const metadata = {
-  title: 'Webzio Agency | Financial Tracker',
+  title: 'Webzio Accounting | Expenses Tracker',
   description: 'Agency management and revenue tracking for Webzio International.',
 };
 
@@ -15,11 +17,13 @@ export default function RootLayout({ children }) {
       <body className="antialiased scroll-smooth">
         <ToastProvider>
           <AuthProvider>
-            <AppProvider>
-              <MainLayout>
-                {children}
-              </MainLayout>
-            </AppProvider>
+            <ConfigProvider>
+              <TransactionProvider>
+                  <MainLayout>
+                    {children}
+                  </MainLayout>
+              </TransactionProvider>
+            </ConfigProvider>
           </AuthProvider>
         </ToastProvider>
       </body>

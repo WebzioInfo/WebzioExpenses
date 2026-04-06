@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { ArrowLeft, Save, TrendingUp, TrendingDown, Coins, Briefcase, ArrowLeftRight, ShieldCheck, AlertCircle, XCircle, RefreshCw } from 'lucide-react';
 import { useApp } from '@/src/context/ExpenseContext';
 import { useAuth } from '@/src/context/AuthContext';
-import { ENTRY_TYPES, ENTRY_STATUS, ACCOUNTS, INCOME_CATEGORIES, EXPENSE_CATEGORIES, RECURRING_FREQUENCIES } from '@/src/utils/constants';
-import { cn } from '@/src/utils/helpers';
+import { ENTRY_TYPES, ENTRY_STATUS, ACCOUNTS, INCOME_CATEGORIES, EXPENSE_CATEGORIES, RECURRING_FREQUENCIES } from '@/src/lib/constants';
+import { cn } from '@/src/lib/utils';
 
 const TYPE_OPTIONS = [
   { id: ENTRY_TYPES.MONEY_IN, label: 'Money In', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
@@ -29,12 +29,14 @@ const BLANK = {
   amount: '',
   date: new Date().toISOString().split('T')[0],
   account: 'Cash',
+  destination_account_id: '',
   personId: '',
   projectId: '',
   category: EXPENSE_CATEGORIES[0],
   status: ENTRY_STATUS.PAID,
   paymentMethod: '',
   notes: '',
+  scope: 'company',
   isRecurring: false,
   recurringFrequency: RECURRING_FREQUENCIES.MONTHLY,
 };
@@ -55,7 +57,7 @@ function AddEntryContent() {
   useEffect(() => {
     if (editId && entries.length > 0) {
       const t = entries.find(e => e.id.toString() === editId);
-      if (t) setForm({ ...BLANK, ...t, amount: t.amount.toString(), personId: t.personId || '', projectId: t.projectId || '' });
+      if (t) setForm({ ...BLANK, ...t, amount: t.amount.toString(), personId: t.personId || '', projectId: t.projectId || '', destination_account_id: t.destination_account_id || '' });
     }
   }, [editId, entries]);
 
@@ -76,9 +78,15 @@ function AddEntryContent() {
       ...form,
       amount: parseFloat(form.amount),
       personId: form.personId || null,
-      projectId: form.projectId || null,
+      projectId: form.scope === 'project' ? (form.projectId || null) : null,
       createdBy: user?.name || '',
     };
+
+    if (data.scope === 'project' && !data.projectId) {
+      setError('Project is required when scope is set to "Project".');
+      setSaving(false);
+      return;
+    }
 
     if (editId) {
       await updateEntry(editId, data);
@@ -97,14 +105,14 @@ function AddEntryContent() {
     <div className="max-w-3xl mx-auto py-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-5 px-1">
-        <button onClick={() => router.back()} className="w-12 h-12 clay-btn p-0 hover:bg-[#2D151F] hover:text-accounting-bg transition-all">
+        <button onClick={() => router.back()} className="w-12 h-12 clay-btn p-0 hover:bg-accounting-bg hover:text-accounting-bg transition-all">
           <ArrowLeft size={20} strokeWidth={2.5} />
         </button>
         <div>
-          <h1 className="text-3xl font-black text-[#2D151F] tracking-tighter leading-none">
+          <h1 className="text-3xl font-black text-accounting-bg tracking-tighter leading-none">
             {editId ? 'Edit Entry' : 'Add Entry'}
           </h1>
-          <p className="text-[9px] font-black text-[#2D151F]/30 uppercase tracking-[0.3em] mt-1">
+          <p className="text-[9px] font-black text-accounting-bg/30 uppercase tracking-[0.3em] mt-1">
             {editId ? 'Update this financial entry' : 'Record a new financial entry'}
           </p>
         </div>
@@ -123,7 +131,7 @@ function AddEntryContent() {
                 onClick={() => handleTypeChange(t.id)}
                 className={cn(
                   'flex flex-col items-center gap-1.5 p-4 rounded-2xl border-2 transition-all',
-                  form.type === t.id ? `${t.bg} shadow-clay-inner` : 'border-transparent bg-accounting-bg/40 text-[#2D151F]/30 hover:bg-white'
+                  form.type === t.id ? `${t.bg} shadow-clay-inner` : 'border-transparent bg-accounting-bg/40 text-accounting-bg/30 hover:bg-white'
                 )}
               >
                 <t.icon size={18} strokeWidth={2.5} className={form.type === t.id ? t.color : ''} />
@@ -148,7 +156,7 @@ function AddEntryContent() {
           <div className="space-y-2">
             <label className="field-label">Amount (₹) <span className="text-red-400">*</span></label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-[#2D151F]/30">₹</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-accounting-bg/30">₹</span>
               <input
                 type="number"
                 min="0.01"
@@ -163,17 +171,67 @@ function AddEntryContent() {
           </div>
         </div>
 
-        {/* Date + Account */}
+        {/* Account + (Target Account if Transfer) */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="field-label">Date</label>
-            <input type="date" className="clay-input w-full" value={form.date} onChange={e => set('date', e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <label className="field-label">Account <span className="text-red-400">*</span></label>
+            <label className="field-label">{isTransfer ? 'From Account' : 'Account'} <span className="text-red-400">*</span></label>
             <select className="clay-input w-full" value={form.account} onChange={e => set('account', e.target.value)}>
               {accountList.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
+          </div>
+          {isTransfer && (
+            <div className="space-y-2 animate-in slide-in-from-right duration-300">
+              <label className="field-label">To Account <span className="text-red-400">*</span></label>
+              <select 
+                className="clay-input w-full" 
+                value={form.destination_account_id} 
+                onChange={e => set('destination_account_id', e.target.value)}
+                required
+              >
+                <option value="">Select Target</option>
+                {accountList.filter(a => a !== form.account).map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+          )}
+          {!isTransfer && (
+            <div className="space-y-2">
+              <label className="field-label">Payment</label>
+              <select className="clay-input w-full" value={form.paymentMethod} onChange={e => set('paymentMethod', e.target.value)}>
+                <option value="">Not specified</option>
+                <option value="Cash">Cash</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="UPI">UPI</option>
+                <option value="Card">Card</option>
+                <option value="Cheque">Cheque</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Scope */}
+        <div className="space-y-3">
+          <label className="field-label">Entry Scope</label>
+          <div className="flex gap-2">
+            {[
+              { id: 'company', label: 'General / Company', icon: Briefcase },
+              { id: 'project', label: 'Project Specific', icon: TrendingUp },
+            ].map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => {
+                  set('scope', s.id);
+                  if (s.id === 'company') set('projectId', '');
+                }}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-[9px] font-black uppercase tracking-widest transition-all',
+                  form.scope === s.id ? 'bg-accounting-bg text-accounting-bg shadow-clay-outer border-accounting-bg' : 'border-transparent bg-accounting-bg/40 text-accounting-bg/30'
+                )}
+              >
+                <s.icon size={14} strokeWidth={2.5} />
+                {s.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -186,41 +244,30 @@ function AddEntryContent() {
               {people.map(p => <option key={p.id} value={p.id}>{p.name} ({p.role})</option>)}
             </select>
           </div>
-          <div className="space-y-2">
-            <label className="field-label">Project</label>
-            <select className="clay-input w-full" value={form.projectId} onChange={e => set('projectId', e.target.value)}>
-              <option value="">None (Company)</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
+          {form.scope === 'project' && (
+            <div className="space-y-2 animate-in slide-in-from-left duration-300">
+              <label className="field-label">Project <span className="text-red-400">*</span></label>
+              <select required className="clay-input w-full border-red-200" value={form.projectId} onChange={e => set('projectId', e.target.value)}>
+                <option value="">Select Project</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Category + Payment */}
+        {/* Category */}
         {!isTransfer && (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="field-label mb-0">Category</label>
-                <Link href="/categories" className="text-[8px] font-black text-[#2D151F]/30 hover:text-[#2D151F] uppercase tracking-widest">Manage</Link>
-              </div>
-              <select className="clay-input w-full" value={form.category} onChange={e => set('category', e.target.value)}>
-                <option value="">Select Category</option>
-                {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
-                {(form.type === ENTRY_TYPES.SALARY) && <option value="Salary">Salary</option>}
-                {(form.type === ENTRY_TYPES.ADDED_MONEY) && <option value="Investment">Investment</option>}
-              </select>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="field-label mb-0">Category</label>
+              <Link href="/categories" className="text-[8px] font-black text-accounting-bg/30 hover:text-accounting-bg uppercase tracking-widest">Manage</Link>
             </div>
-            <div className="space-y-2">
-              <label className="field-label">Payment</label>
-              <select className="clay-input w-full" value={form.paymentMethod} onChange={e => set('paymentMethod', e.target.value)}>
-                <option value="">Not specified</option>
-                <option value="Cash">Cash</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="UPI">UPI</option>
-                <option value="Card">Card</option>
-                <option value="Cheque">Cheque</option>
-              </select>
-            </div>
+            <select className="clay-input w-full" value={form.category} onChange={e => set('category', e.target.value)}>
+              <option value="">Select Category</option>
+              {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
+              {(form.type === ENTRY_TYPES.SALARY) && <option value="Salary">Salary</option>}
+              {(form.type === ENTRY_TYPES.ADDED_MONEY) && <option value="Investment">Investment</option>}
+            </select>
           </div>
         )}
 
@@ -235,7 +282,7 @@ function AddEntryContent() {
                 onClick={() => set('status', s.id)}
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl border-2 text-[9px] font-black uppercase tracking-widest transition-all',
-                  form.status === s.id ? `${s.bg} shadow-clay-inner` : 'border-transparent bg-accounting-bg/40 text-[#2D151F]/30'
+                  form.status === s.id ? `${s.bg} shadow-clay-inner` : 'border-transparent bg-accounting-bg/40 text-accounting-bg/30'
                 )}
               >
                 <s.icon size={14} strokeWidth={2.5} className={form.status === s.id ? s.color : ''} />
@@ -249,7 +296,7 @@ function AddEntryContent() {
         <div className="p-5 bg-accounting-bg/50 rounded-2xl shadow-clay-inner border border-white/40 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <RefreshCw size={16} strokeWidth={2.5} className="text-[#2D151F]/40" />
+              <RefreshCw size={16} strokeWidth={2.5} className="text-accounting-bg/40" />
               <label className="field-label mb-0">Repeat automatically</label>
             </div>
             <button
@@ -257,7 +304,7 @@ function AddEntryContent() {
               onClick={() => set('isRecurring', !form.isRecurring)}
               className={cn(
                 'w-12 h-6 rounded-full transition-all duration-300 relative',
-                form.isRecurring ? 'bg-[#2D151F]' : 'bg-[#2D151F]/20'
+                form.isRecurring ? 'bg-accounting-bg' : 'bg-accounting-bg/20'
               )}
             >
               <div className={cn('absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all', form.isRecurring ? 'left-7' : 'left-1')} />
@@ -272,7 +319,7 @@ function AddEntryContent() {
                   onClick={() => set('recurringFrequency', f)}
                   className={cn(
                     'flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border',
-                    form.recurringFrequency === f ? 'bg-[#2D151F] text-accounting-bg border-[#2D151F]' : 'border-[#2D151F]/10 text-[#2D151F]/30'
+                    form.recurringFrequency === f ? 'bg-accounting-bg text-accounting-bg border-accounting-bg' : 'border-accounting-bg/10 text-accounting-bg/30'
                   )}
                 >
                   {f}
@@ -306,7 +353,7 @@ function AddEntryContent() {
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 h-14 bg-[#2D151F] text-accounting-bg rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-clay-plum active:scale-95 transition-all shadow-clay-outer disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 h-14 bg-accounting-bg text-accounting-bg rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-clay-plum active:scale-95 transition-all shadow-clay-outer disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <Save size={16} strokeWidth={2.5} />
             {saving ? 'Saving...' : editId ? 'Update Entry' : 'Save Entry'}
@@ -314,7 +361,7 @@ function AddEntryContent() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="h-14 px-8 clay-btn text-[#2D151F]/40 text-[10px] font-black uppercase tracking-widest"
+            className="h-14 px-8 clay-btn text-accounting-bg/40 text-[10px] font-black uppercase tracking-widest"
           >
             Cancel
           </button>
@@ -328,7 +375,7 @@ export default function AddEntryPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-32">
-        <div className="w-10 h-10 bg-[#2D151F]/10 rounded-2xl animate-pulse shadow-clay-inner" />
+        <div className="w-10 h-10 bg-accounting-bg/10 rounded-2xl animate-pulse shadow-clay-inner" />
       </div>
     }>
       <AddEntryContent />

@@ -4,7 +4,7 @@ import React, { useMemo, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Edit2, ShieldCheck, Download, AlertCircle, TrendingUp, TrendingDown, Coins, Briefcase, ArrowLeftRight } from 'lucide-react';
 import { useApp } from '@/src/context/ExpenseContext';
-import { formatCurrency, cn } from '@/src/utils/helpers';
+import { formatCurrency, cn } from '@/src/lib/utils';
 
 const TYPE_ICONS = {
   'Money In': { icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },

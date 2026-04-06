@@ -69,10 +69,11 @@
     background-color: white;
     border-radius: var(--radius-3xl);
     box-shadow: var(--shadow-clay-outer);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(45, 21, 31, 0.4);
     position: relative;
     overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    color: var(--color-accounting-text);
   }
 
   .clay-card::after {
@@ -91,10 +92,9 @@
 
   /* Tactile Clay Buttons */
   .clay-btn {
-    background-color: white;
+    background-color: transparent;
     border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-clay-btn);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 2px solid var(--color-accounting-text);
     font-weight: 800;
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
@@ -106,42 +106,45 @@
     letter-spacing: 0.08em;
     font-size: 0.7rem;
     position: relative;
-  }
-
-  .clay-btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    box-shadow: var(--shadow-clay-inner);
-    pointer-events: none;
-    opacity: 0.5;
+    cursor: pointer;
   }
 
   .clay-btn:active {
     transform: scale(0.95);
-    box-shadow: var(--shadow-clay-pressed);
   }
 
-  /* Primary Accent Clay */
+  /* Primary Action Button */
   .clay-btn-primary {
-    background-color: var(--color-accounting-accent);
-    color: var(--color-accounting-bg);
+    background-color: var(--color-accounting-text);
+    color: #FFFFFF;
     border: none;
-    box-shadow: 8px 8px 16px rgba(45, 21, 31, 0.2), inset 4px 4px 8px rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-clay-btn);
   }
 
-  .clay-btn-primary::after {
-    box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.2), inset 4px 4px 8px rgba(255, 255, 255, 0.1);
+  .clay-btn-primary:hover {
+    background-color: var(--color-clay-plum);
+    box-shadow: 12px 12px 24px rgba(45, 21, 31, 0.2);
+  }
+
+  /* Danger Button */
+  .clay-btn-danger {
+    background-color: #b91c1c;
+    color: #FFFFFF;
+    border: none;
+    box-shadow: 8px 8px 16px rgba(185, 28, 28, 0.2);
+  }
+
+  .clay-btn-danger:hover {
+    background-color: #991b1b;
   }
 
   /* Recessed Clay Inputs */
   .clay-input {
-    background-color: #FAF9F6;
+    background-color: #FFFFFF;
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-clay-pressed);
-    border: 1px solid rgba(45, 21, 31, 0.02);
-    padding: 1rem 1.5rem;
+    border: 1px solid rgba(45, 21, 31, 0.1);
+    padding: 0.75rem 1.25rem;
     transition: all 0.2s;
     font-size: 0.875rem;
     font-weight: 600;
@@ -150,18 +153,18 @@
 
   .clay-input:focus {
     outline: none;
-    background-color: white;
+    border-color: var(--color-accounting-text);
     box-shadow: var(--shadow-clay-outer);
   }
 
   /* Consistent form label */
   .field-label {
     display: block;
-    font-size: 0.625rem;
+    font-size: 0.7rem;
     font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.25em;
-    color: color-mix(in srgb, var(--color-accounting-text) 35%, transparent);
+    letter-spacing: 0.1em;
+    color: var(--color-accounting-text);
     padding-left: 0.25rem;
     margin-bottom: 0.375rem;
   }

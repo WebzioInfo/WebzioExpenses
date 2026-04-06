@@ -3,7 +3,7 @@
 import React, { useMemo, Suspense } from 'react';
 import { Briefcase, CreditCard, PieChart, TrendingDown, ArrowRight, Wallet, Banknote, Smartphone } from 'lucide-react';
 import { useApp } from '@/src/context/ExpenseContext';
-import { formatCurrency, cn } from '@/src/utils/helpers';
+import { formatCurrency, cn } from '@/src/lib/utils';
 import Link from 'next/link';
 
 const ACCOUNT_ICONS = {

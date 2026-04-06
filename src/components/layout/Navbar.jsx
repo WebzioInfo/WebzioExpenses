@@ -1,0 +1,90 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Menu, Bell, LogOut, ChevronDown, ShieldCheck, User } from 'lucide-react';
+import { useAuth } from '@/src/context/AuthContext';
+import { useTransactions } from '@/src/context/TransactionContext';
+import { cn } from '@/src/lib/utils';
+import Link from 'next/link';
+
+export const Navbar = ({ onOpenSidebar }) => {
+  const { user, logout, isAdmin } = useAuth();
+  const { transactions } = useTransactions();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const pendingCount = transactions.filter(e => e.status === 'Pending').length;
+
+  return (
+    <header className="h-20 flex items-center justify-between px-6 sm:px-10 bg-transparent sticky top-0 z-30">
+      <div className="flex-1 flex items-center justify-between">
+        {/* Left: Mobile burger */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onOpenSidebar}
+            className="lg:hidden w-11 h-11 clay-btn hover:bg-accounting-text hover:text-accounting-bg transition-all shadow-clay-outer"
+          >
+            <Menu size={18} strokeWidth={2.5} />
+          </button>
+          <div className="hidden lg:block">
+            <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-[0.4em]">Webzio International</p>
+          </div>
+        </div>
+
+        {/* Right */}
+        <div className="flex items-center gap-3">
+          {/* Pending Bell */}
+          <Link href="/transactions?filter=Pending" className="relative group">
+            <button className="w-11 h-11 rounded-2xl bg-white shadow-clay-inner text-accounting-text/60 hover:text-accounting-text transition-all flex items-center justify-center">
+              <Bell size={16} strokeWidth={2.5} />
+              {pendingCount > 0 && (
+                <div className="absolute top-2 right-2 w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+              )}
+            </button>
+          </Link>
+
+          {/* User Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              className="flex items-center gap-3 py-2 px-3 bg-white rounded-2xl shadow-clay-inner hover:shadow-clay-outer transition-all"
+            >
+              <div className="w-8 h-8 rounded-xl bg-accounting-text flex items-center justify-center text-accounting-bg text-[10px] font-black">
+                {user?.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-[10px] font-black text-accounting-text leading-none">{user?.name}</p>
+                <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                  {isAdmin ? <ShieldCheck size={8} strokeWidth={2.5} className="text-emerald-500" /> : <User size={8} strokeWidth={2.5} />}
+                  {user?.role}
+                </p>
+              </div>
+              <ChevronDown size={12} strokeWidth={2.5} className={cn('text-accounting-text/60 transition-transform', menuOpen && 'rotate-180')} />
+            </button>
+
+            {/* Dropdown */}
+            {menuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-clay-outer border border-white/50 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="p-4 border-b border-accounting-text/5">
+                  <p className="text-[10px] font-black text-accounting-text">{user?.name}</p>
+                  <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-widest">{user?.email}</p>
+                </div>
+                {isAdmin && (
+                  <Link href="/users" onClick={() => setMenuOpen(false)}>
+                    <div className="flex items-center gap-3 px-4 py-3 hover:bg-accounting-bg/40 text-accounting-text/60 hover:text-accounting-text transition-colors cursor-pointer">
+                      <User size={14} strokeWidth={2.5} />
+                      <span className="text-[10px] font-black uppercase tracking-wide">Manage Users</span>
+                    </div>
+                  </Link>
+                )}
+                <button onClick={logout} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors">
+                  <LogOut size={14} strokeWidth={2.5} />
+                  <span className="text-[10px] font-black uppercase tracking-wide">Log Out</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};

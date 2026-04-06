@@ -3,7 +3,7 @@ import pool from '@/src/lib/db';
 
 export async function GET() {
   try {
-    const [rows] = await pool.query('SELECT * FROM projects WHERE isActive = TRUE ORDER BY name ASC');
+    const [rows] = await pool.query('SELECT * FROM projects WHERE isActive = TRUE ORDER BY created_at DESC');
     return NextResponse.json(rows);
   } catch (error) {
     console.error('DB Error:', error);

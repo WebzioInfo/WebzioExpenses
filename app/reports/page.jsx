@@ -3,14 +3,15 @@
 import React, { useMemo, useState } from 'react';
 import { TrendingUp, TrendingDown, Coins, Briefcase } from 'lucide-react';
 import { useApp } from '@/src/context/ExpenseContext';
-import { formatCurrency, cn } from '@/src/utils/helpers';
+import { formatCurrency, cn } from '@/src/lib/utils';
 import { MonthlyBarChart, CategoryPieChart } from '@/src/components/Charts';
-import { DATE_FILTERS } from '@/src/utils/constants';
+import { DATE_FILTERS } from '@/src/lib/constants';
+import { calculateStats } from '@/src/hooks/useStats';
 
 const DATE_OPTS = ['This Month', 'Last Month', 'This Year', 'All Time'];
 
 export default function ReportsPage() {
-  const { entries, projects, loading, computeStats } = useApp();
+  const { entries, projects, loading } = useApp();
   const [period, setPeriod] = useState('This Month');
 
   const filtered = useMemo(() => {
@@ -32,7 +33,7 @@ export default function ReportsPage() {
     return entries;
   }, [entries, period]);
 
-  const stats = useMemo(() => computeStats(filtered), [filtered]);
+  const stats = useMemo(() => calculateStats(filtered), [filtered]);
 
   const projectPnL = useMemo(() =>
     projects.map(p => {
@@ -66,19 +67,19 @@ export default function ReportsPage() {
     return map;
   }, [filtered]);
 
-  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 bg-[#2D151F]/10 rounded-2xl animate-pulse shadow-clay-inner" /></div>;
+  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 bg-accounting-bg/10 rounded-2xl animate-pulse shadow-clay-inner" /></div>;
 
   return (
     <div className="space-y-8 py-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
         <div>
-          <h1 className="text-3xl font-black text-[#2D151F] tracking-tighter leading-none">Reports</h1>
-          <p className="text-[9px] font-black text-[#2D151F]/30 uppercase tracking-[0.3em] mt-1">Financial overview</p>
+          <h1 className="text-3xl font-black text-accounting-bg tracking-tighter leading-none">Reports</h1>
+          <p className="text-[9px] font-black text-accounting-bg/30 uppercase tracking-[0.3em] mt-1">Financial overview</p>
         </div>
         <div className="flex gap-2">
           {DATE_OPTS.map(d => (
-            <button key={d} onClick={() => setPeriod(d)} className={cn('h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all', period === d ? 'bg-[#2D151F] text-[#F4F3DC] shadow-clay-outer' : 'bg-white text-[#2D151F]/30 hover:bg-[#F4F3DC] shadow-clay-inner')}>
+            <button key={d} onClick={() => setPeriod(d)} className={cn('h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all', period === d ? 'bg-accounting-bg text-accounting-bg shadow-clay-outer' : 'bg-white text-accounting-bg/30 hover:bg-accounting-bg shadow-clay-inner')}>
               {d}
             </button>
           ))}
@@ -88,8 +89,8 @@ export default function ReportsPage() {
       {/* Summary */}
       {entries.length === 0 ? (
         <div className="clay-card p-20 text-center">
-          <p className="text-base font-black text-[#2D151F]/30 uppercase tracking-tighter">No data available</p>
-          <p className="text-[9px] font-black text-[#2D151F]/20 uppercase tracking-widest mt-2">Add entries to generate reports</p>
+          <p className="text-base font-black text-accounting-bg/30 uppercase tracking-tighter">No data available</p>
+          <p className="text-[9px] font-black text-accounting-bg/20 uppercase tracking-widest mt-2">Add entries to generate reports</p>
         </div>
       ) : (
         <>
@@ -104,7 +105,7 @@ export default function ReportsPage() {
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-clay-inner', c.bg)}>
                   <c.icon size={16} strokeWidth={2.5} className={c.color} />
                 </div>
-                <p className="text-[8px] font-black text-[#2D151F]/30 uppercase tracking-widest">{c.label}</p>
+                <p className="text-[8px] font-black text-accounting-bg/30 uppercase tracking-widest">{c.label}</p>
                 <p className={cn('text-2xl font-black tracking-tighter mt-1', c.color)}>{formatCurrency(c.value)}</p>
               </div>
             ))}
@@ -113,37 +114,37 @@ export default function ReportsPage() {
           {/* Charts */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <div className="clay-card p-8">
-              <h3 className="font-black text-[#2D151F] uppercase tracking-tighter mb-6">6-Month Overview</h3>
+              <h3 className="font-black text-accounting-bg uppercase tracking-tighter mb-6">6-Month Overview</h3>
               <MonthlyBarChart data={monthly6} />
             </div>
             <div className="clay-card p-8">
-              <h3 className="font-black text-[#2D151F] uppercase tracking-tighter mb-6">Category Breakdown</h3>
+              <h3 className="font-black text-accounting-bg uppercase tracking-tighter mb-6">Category Breakdown</h3>
               {Object.keys(categoryBreakdown).length > 0 ? (
                 <CategoryPieChart data={categoryBreakdown} title="Expenses" />
               ) : (
-                <p className="text-[10px] font-black text-[#2D151F]/20 uppercase tracking-widest text-center py-16">No expense data</p>
+                <p className="text-[10px] font-black text-accounting-bg/20 uppercase tracking-widest text-center py-16">No expense data</p>
               )}
             </div>
           </div>
 
           {/* Project P&L */}
           <div className="clay-card p-8">
-            <h3 className="font-black text-[#2D151F] uppercase tracking-tighter mb-6">Project Profit & Loss</h3>
+            <h3 className="font-black text-accounting-bg uppercase tracking-tighter mb-6">Project Profit & Loss</h3>
             {projectPnL.length === 0 ? (
-              <p className="text-[10px] font-black text-[#2D151F]/20 uppercase tracking-widest py-10 text-center">No projects available</p>
+              <p className="text-[10px] font-black text-accounting-bg/20 uppercase tracking-widest py-10 text-center">No projects available</p>
             ) : (
               <div className="space-y-3">
                 {projectPnL.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-4 bg-[#F4F3DC]/40 rounded-2xl shadow-clay-inner border border-white/40">
+                  <div key={p.id} className="flex items-center justify-between p-4 bg-accounting-bg/40 rounded-2xl shadow-clay-inner border border-white/40">
                     <div>
-                      <p className="font-black text-[#2D151F] text-sm">{p.name}</p>
-                      {p.clientName && <p className="text-[8px] font-black text-[#2D151F]/30 uppercase tracking-widest">{p.clientName}</p>}
+                      <p className="font-black text-accounting-bg text-sm">{p.name}</p>
+                      {p.clientName && <p className="text-[8px] font-black text-accounting-bg/30 uppercase tracking-widest">{p.clientName}</p>}
                     </div>
                     <div className="text-right">
                       <p className={cn('font-black text-lg tracking-tighter', p.profit >= 0 ? 'text-emerald-600' : 'text-red-500')}>
                         {formatCurrency(p.profit)}
                       </p>
-                      <p className="text-[8px] font-black text-[#2D151F]/20 uppercase tracking-widest">In: {formatCurrency(p.income)} · Out: {formatCurrency(p.expense)}</p>
+                      <p className="text-[8px] font-black text-accounting-bg/20 uppercase tracking-widest">In: {formatCurrency(p.income)} · Out: {formatCurrency(p.expense)}</p>
                     </div>
                   </div>
                 ))}
