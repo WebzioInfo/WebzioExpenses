@@ -41,7 +41,7 @@ export const calculateStats = (entries = []) => {
     
     if (t.type === ENTRY_TYPES.TRANSFER) {
       const fromAcc = t.account || 'Cash';
-      const toAcc = t.notes?.startsWith('To: ') ? t.notes.substring(4) : null;
+      const toAcc = t.destination_account_id;
       
       accountBalances[fromAcc] = (accountBalances[fromAcc] || 0) - amt;
       if (toAcc) accountBalances[toAcc] = (accountBalances[toAcc] || 0) + amt;

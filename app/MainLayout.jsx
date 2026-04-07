@@ -36,7 +36,7 @@ export default function MainLayout({ children }) {
       <div className="min-h-screen bg-accounting-bg flex items-center justify-center">
         <div className="space-y-6 text-center animate-in fade-in duration-500">
           <div className="relative w-16 h-16 mx-auto">
-            <div className="absolute inset-0 bg-accounting-bg/10 rounded-2xl animate-pulse shadow-clay-inner" />
+            <div className="absolute inset-0 bg-accounting-bg/10 rounded-2xl animate-pulse -inner" />
             <div className="absolute inset-2 border-2 border-t-accounting-bg border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin" />
           </div>
           <div className="space-y-2">
@@ -60,10 +60,10 @@ export default function MainLayout({ children }) {
     <div className="flex h-screen bg-accounting-bg selection:bg-accounting-bg selection:text-accounting-bg">
       {/* Navigation Layer */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
+
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <Navbar onOpenSidebar={() => setSidebarOpen(true)} />
-        
+
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 sm:p-10 focus:outline-none scroll-smooth">
           <div className="max-w-7xl mx-auto pb-28 animate-in fade-in slide-in-from-bottom-2 duration-500">

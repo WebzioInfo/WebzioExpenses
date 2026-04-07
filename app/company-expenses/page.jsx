@@ -18,8 +18,8 @@ function CompanyExpensesContent() {
 
   const companyExpenses = useMemo(() => {
     if (!entries) return [];
-    return entries.filter(t => 
-      (t.type === 'Money Out' || t.type === 'Salary') && 
+    return entries.filter(t =>
+      (t.type === 'Money Out' || t.type === 'Salary') &&
       (!t.projectId || t.projectId === '') &&
       t.status !== 'Cancelled'
     ).sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -58,7 +58,7 @@ function CompanyExpensesContent() {
       </div>
 
       {/* Hero Stats */}
-      <div className="bg-[#2D151F] text-accounting-bg rounded-3xl p-10 shadow-clay-outer relative overflow-hidden">
+      <div className="bg-[#2D151F] text-accounting-bg rounded-3xl p-10 -outer relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-20 -mt-20" />
         <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] mb-3">Total Internal Spend</p>
         <p className="text-5xl font-black tracking-tighter text-red-400">
@@ -89,9 +89,9 @@ function CompanyExpensesContent() {
                         <p className="text-xs font-black text-[#2D151F]">{cat}</p>
                         <p className="text-xs font-black text-[#2D151F]/60">{formatCurrency(amt)}</p>
                       </div>
-                      <div className="h-1.5 bg-accounting-bg rounded-full overflow-hidden shadow-clay-inner">
-                        <div 
-                          className="h-full bg-red-400 rounded-full" 
+                      <div className="h-1.5 bg-accounting-bg rounded-full overflow-hidden -inner">
+                        <div
+                          className="h-full bg-red-400 rounded-full"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -122,7 +122,7 @@ function CompanyExpensesContent() {
                 return (
                   <div key={entry.id} className="clay-card p-5 group hover:bg-accounting-bg/30 transition-all flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-clay-inner text-red-400">
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center -inner text-red-400">
                         <TrendingDown size={18} strokeWidth={2.5} />
                       </div>
                       <div>
@@ -150,7 +150,7 @@ function CompanyExpensesContent() {
 
 export default function CompanyExpensesPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center"><div className="w-10 h-10 bg-[#2D151F]/10 rounded-2xl animate-pulse mx-auto shadow-clay-inner" /></div>}>
+    <Suspense fallback={<div className="py-20 text-center"><div className="w-10 h-10 bg-[#2D151F]/10 rounded-2xl animate-pulse mx-auto -inner" /></div>}>
       <CompanyExpensesContent />
     </Suspense>
   );

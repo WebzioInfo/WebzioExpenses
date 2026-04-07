@@ -43,14 +43,14 @@ export default function Modal({ isOpen, onClose, title, subtitle, children, size
       {/* Modal Card */}
       <div
         className={cn(
-          "relative w-full bg-white rounded-3xl shadow-clay-outer border border-white/50 overflow-hidden",
+          "relative w-full bg-white rounded-3xl -outer border border-white/50 overflow-hidden",
           "animate-in zoom-in-95 fade-in duration-300",
           sizeClasses[size]
         )}
         onClick={e => e.stopPropagation()}
       >
         {/* Inner highlight */}
-        <div className="absolute inset-0 rounded-3xl pointer-events-none shadow-clay-inner" />
+        <div className="absolute inset-0 rounded-3xl pointer-events-none -inner" />
 
         {/* Header */}
         <div className="flex items-start justify-between p-8 pb-6 border-b border-accounting-text/5">
@@ -64,8 +64,8 @@ export default function Modal({ isOpen, onClose, title, subtitle, children, size
               </p>
             )}
           </div>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={onClose}
             icon={X}
             className="w-10 h-10 p-0"

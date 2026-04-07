@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LayoutDashboard, List, FolderKanban, Users, BarChart3, Settings, UserCog, AlertCircle, Briefcase, Tag, CheckCircle2 } from 'lucide-react';
+import { LayoutDashboard, List, FolderKanban, Users, BarChart3, Settings, UserCog, AlertCircle, Briefcase, Tag, CheckCircle2, ShieldCheck, Calendar as CalendarIcon } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { cn } from '@/src/lib/utils';
 import Image from 'next/image';
@@ -13,17 +13,33 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const { user } = useAuth();
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['admin', 'staff', 'freelancer'] },
-    { name: 'My Work', path: '/tasks', icon: CheckCircle2, roles: ['admin', 'staff', 'freelancer'] },
-    { name: 'My Money', path: '/transactions', icon: List, roles: ['admin', 'staff', 'freelancer'] },
-    { name: 'Projects', path: '/projects', icon: FolderKanban, roles: ['admin'] },
-    { name: 'Staff', path: '/staff', icon: Users, roles: ['admin'] },
-    { name: 'Leads', path: '/leads', icon: BarChart3, roles: ['admin'] },
-    { name: 'Clients', path: '/clients', icon: BarChart3, roles: ['admin'] },
-    { name: 'Categories', path: '/categories', icon: Tag, roles: ['admin'] },
-    { name: 'Settings', path: '/settings', icon: Settings, roles: ['admin', 'staff'] },
-    { name: 'Users', path: '/users', icon: UserCog, roles: ['admin'] },
-  ].filter(item => item.roles.includes(user?.role));
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['admin', 'staff', 'freelancer'], module: 'Dashboard' },
+    { name: 'My Work', path: '/tasks', icon: CheckCircle2, roles: ['Admin', 'HR', 'Staff', 'Freelancer'], module: 'Tasks' },
+    { name: 'My Money', path: '/transactions', icon: List, roles: ['Admin', 'HR', 'Staff', 'Freelancer'], module: 'Finance' },
+    { name: 'Projects', path: '/projects', icon: FolderKanban, roles: ['Admin'], module: 'Finance' },
+    { name: 'Attendance', path: '/attendance', icon: CalendarIcon, roles: ['Admin', 'HR', 'Staff', 'Freelancer'], module: 'Attendance' },
+    { name: 'Staff', path: '/staff', icon: Users, roles: ['Admin', 'HR'], module: 'Finance' },
+    { name: 'Leads', path: '/leads', icon: BarChart3, roles: ['admin'], module: 'CRM' },
+    { name: 'Clients', path: '/clients', icon: BarChart3, roles: ['admin'], module: 'CRM' },
+    { name: 'Categories', path: '/categories', icon: Tag, roles: ['admin'], module: 'Finance' },
+    { name: user?.role === 'Admin' ? 'Settings' : 'Profile Settings', path: '/settings', icon: Settings, roles: ['Admin', 'HR', 'Staff'], module: 'Settings' },
+    { name: 'Admin Protocol', path: '/admin/settings', icon: ShieldCheck, roles: ['Admin'], module: 'Admin' },
+    { name: 'Users', path: '/users', icon: UserCog, roles: ['Admin'], module: 'Admin' },
+  ].filter(item => {
+    // Admin sees everything
+    if (user?.role === 'Admin') return true;
+    if (user?.role === 'HR' && ['Tasks', 'Attendance', 'Finance', 'Settings'].includes(item.module)) return true;
+
+    // Check basic role access first
+    if (!item.roles.includes(user?.role)) return false;
+
+    // Check granular permissions for staff/freelancers
+    // Note: 'Settings' is always allowed if they have the role
+    if (item.module === 'Settings') return true;
+
+    const perms = user?.permissions || [];
+    return perms.includes(item.module);
+  });
 
   return (
     <>
@@ -47,12 +63,12 @@ export const Sidebar = ({ isOpen, onClose }) => {
           {/* Logo */}
           <div className="px-3 mb-10">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-clay-outer relative after:absolute after:inset-0 after:rounded-2xl after:shadow-clay-inner group-hover:scale-105 transition-transform overflow-hidden p-2.5">
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center -outer relative after:absolute after:inset-0 after:rounded-2xl after:-inner group-hover:scale-105 transition-transform overflow-hidden p-2.5">
                 <Image src="/assets/logos/WEBZIOLOGO5-01-CROPPEDFOR_LOGO.png" alt="Webzio" width={36} height={36} className="object-contain" priority />
               </div>
               <div>
-                <span className="font-black text-xl tracking-tighter text-accounting-text leading-none uppercase block">Webzio</span>
-                <span className="text-[8px] font-black text-accounting-text/60 tracking-[0.4em] uppercase">Accounts</span>
+                <span className="font-montserrat font-black text-xl tracking-tighter text-accounting-text leading-none uppercase block">Webzio</span>
+                <span className="text-[8px] font-black text-accounting-text/80 tracking-[0.4em] uppercase">International</span>
               </div>
             </Link>
           </div>
@@ -69,8 +85,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
                   className={cn(
                     "flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 group",
                     isActive
-                      ? "bg-accounting-text text-accounting-bg shadow-clay-outer"
-                      : "text-accounting-text/70 hover:text-accounting-text hover:bg-white hover:shadow-clay-outer"
+                      ? "bg-accounting-text text-accounting-bg -outer"
+                      : "text-accounting-text/70 hover:text-accounting-text hover:bg-white hover:-outer"
                   )}
                 >
                   <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
@@ -83,8 +99,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
           {/* Footer */}
           <div className="px-3 mt-6">
-            <div className="p-4 bg-accounting-bg rounded-2xl shadow-clay-inner border border-white/40">
-              <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-widest">© {new Date().getFullYear()} Webzio International</p>
+            <div className="p-4 bg-accounting-bg rounded-2xl -inner border border-white/40">
+              <p className="text-[8px] font-black text-accounting-text/80 uppercase tracking-widest">© {new Date().getFullYear()} Webzio International</p>
             </div>
           </div>
         </div>

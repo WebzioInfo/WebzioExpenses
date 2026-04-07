@@ -74,11 +74,14 @@ export const AuthProvider = ({ children }) => {
         value={{
           user,
           loading,
-          isAdmin: user?.role === 'admin',
+          isAdmin: user?.role === 'Admin',
+          isHR: user?.role === 'HR',
+          isManagement: user?.role === 'Admin' || user?.role === 'HR',
           permissions: user?.permissions || [],
           hasPermission,
           login,
           logout,
+          refreshUser: checkAuth,
           isAuthenticated: !!user
         }}
       >

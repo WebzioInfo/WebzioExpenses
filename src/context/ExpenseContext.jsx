@@ -63,6 +63,11 @@ export const useApp = () => {
     updateCategory: config.updateCategory,
     deleteCategory: config.deleteCategory,
 
+    // Tasks
+    addTask: config.addTask,
+    updateTask: config.updateTask,
+    deleteTask: config.deleteTask,
+
     // Utils
     stats,
     exportData: trans.exportCSV,

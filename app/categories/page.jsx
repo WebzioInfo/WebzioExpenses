@@ -5,7 +5,9 @@ import { Tag, Plus, Edit2, Trash2, TrendingUp, TrendingDown, AlertCircle } from 
 import { useApp } from '@/src/context/ExpenseContext';
 import { cn } from '@/src/lib/utils';
 import Button from '@/src/components/ui/Button';
-
+import Card from '@/src/components/ui/Card';
+import Input from '@/src/components/ui/Input';
+import Select from '@/src/components/ui/Select';
 import { TableSkeleton } from '@/src/components/ui/Skeleton';
 
 function CategoriesContent() {
@@ -40,10 +42,10 @@ function CategoriesContent() {
 
   if (loading) return (
     <div className="space-y-8 py-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
-        <div className="space-y-2"><div className="w-48 h-8 bg-[#2D151F]/10 rounded-xl animate-pulse" /><div className="w-24 h-3 bg-[#2D151F]/10 rounded-lg animate-pulse" /></div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-1">
+        <div className="space-y-2"><div className="w-48 h-8 bg-accounting-text/10 rounded-xl animate-pulse" /><div className="w-24 h-3 bg-accounting-text/10 rounded-lg animate-pulse" /></div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <TableSkeleton />
         <TableSkeleton />
       </div>
@@ -57,146 +59,143 @@ function CategoriesContent() {
 
   return (
     <div className="space-y-8 py-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-1">
         <div>
-          <h1 className="text-3xl font-black text-[#2D151F] tracking-tighter leading-none">Categories</h1>
-          <p className="text-[9px] font-black text-accounting-text/60 uppercase tracking-[0.3em] mt-1">Manage find-tuned expense and income labels</p>
+          <h1 className="text-4xl font-black text-accounting-text tracking-tighter leading-none">Category Matrix</h1>
+          <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest mt-2">Precision labeling for systemic fiscal events</p>
         </div>
         {!isAdding && (
-          <Button onClick={() => setIsAdding(true)} icon={Plus}>New Category</Button>
+          <Button onClick={() => setIsAdding(true)} icon={Plus}>Provision Tag</Button>
         )}
       </div>
 
+      {/* Addition / Modification Interface */}
       {isAdding && (
-        <div className="clay-card p-6 animate-in slide-in-from-top duration-300">
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 space-y-1">
-              <label className="text-[9px] font-black text-accounting-text/60 uppercase tracking-widest ml-1">Category Name</label>
-              <input
+        <Card className="p-8 animate-in slide-in-from-top duration-300 border border-accounting-text/5 shadow-2xl">
+          <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row items-end gap-6">
+            <div className="flex-1 w-full lg:w-auto">
+              <Input
+                label="Strategic Label Name"
                 required
-                className="clay-input w-full h-11 text-sm"
-                placeholder="e.g. Subsistence, Cloud Hosting..."
+                placeholder="e.g. Cloud Infrastructure, Marketing Assets..."
                 value={form.name}
                 onChange={e => setForm({ ...form, name: e.target.value })}
                 autoFocus
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-[9px] font-black text-accounting-text/60 uppercase tracking-widest ml-1">Type</label>
-              <select 
-                className="clay-input h-11 text-sm w-full sm:w-40" 
-                value={form.type} 
+            <div className="w-full lg:w-64">
+              <Select
+                label="Economic Flow Type"
+                value={form.type}
                 onChange={e => setForm({ ...form, type: e.target.value })}
               >
-                <option value="Money In">Money In</option>
-                <option value="Money Out">Money Out</option>
-              </select>
+                <option value="Money In">System Inflow</option>
+                <option value="Money Out">System Outflow</option>
+              </Select>
             </div>
-            <div className="flex items-end gap-2">
-              <Button type="submit" isLoading={false} className="h-11 px-6">
-                {editingId ? 'Update' : 'Save'}
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <Button type="submit" className="h-12 px-10 flex-1 lg:flex-none">
+                {editingId ? 'Authorize Update' : 'Initialize Tag'}
               </Button>
-              <Button variant="outline" type="button" onClick={resetForm} className="h-11 px-6 text-[#2D151F]">
-                Cancel
+              <Button variant="secondary" type="button" onClick={resetForm} className="h-12 px-6">
+                Abort
               </Button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Category Ledger */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Income Categories */}
-        <div className="space-y-4">
-          <h2 className="text-[10px] font-black text-emerald-600/50 uppercase tracking-widest px-1 flex items-center gap-2">
-            <TrendingUp size={12} /> Income Labels
-          </h2>
-          <div className="clay-card overflow-hidden">
-            {categoriesByType['Money In'].length === 0 ? (
-              <p className="p-10 text-center text-[10px] font-black text-accounting-text/50 uppercase">No income categories</p>
-            ) : (
-              categoriesByType['Money In'].map((cat, i) => (
-                <div key={cat.id} className={cn('flex items-center justify-between p-4 group hover:bg-accounting-bg/20 transition-colors', i > 0 && 'border-t border-[#2D151F]/5')}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-clay-inner">
-                      <Tag size={14} />
-                    </div>
-                    <span className="text-sm font-black text-[#2D151F]">{cat.name}</span>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => startEdit(cat)} 
-                      icon={Edit2}
-                      className="p-2 w-8 h-8 flex items-center justify-center text-accounting-text/60 hover:text-[#2D151F]"
-                    />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} 
-                      icon={Trash2}
-                      className="p-2 w-8 h-8 flex items-center justify-center text-red-300 hover:text-red-500"
-                    />
-                  </div>
-                </div>
-              ))
-            )}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest flex items-center gap-2">
+               <TrendingUp size={14} strokeWidth={3} /> Inflow Protocols
+            </h2>
+            <span className="text-[9px] font-black text-secondary-text/20 uppercase tracking-widest">{categoriesByType['Money In'].length} Active</span>
           </div>
+          <Card className="overflow-hidden border border-accounting-text/5 shadow-xl">
+            {categoriesByType['Money In'].length === 0 ? (
+              <div className="p-20 text-center space-y-3 opacity-20">
+                <Tag size={32} className="mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-widest leading-none">Registry Null</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-accounting-bg">
+                {categoriesByType['Money In'].map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between p-5 group hover:bg-accounting-bg/10 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center -inner border border-white">
+                        <Tag size={16} strokeWidth={3} />
+                      </div>
+                      <span className="text-base font-black text-accounting-text tracking-tight group-hover:translate-x-0.5 transition-transform">{cat.name}</span>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all -translate-x-1 group-hover:translate-x-0">
+                      <Button variant="ghost" size="sm" onClick={() => startEdit(cat)} icon={Edit2} className="w-9 h-9 p-0 text-secondary-text hover:text-accounting-text bg-white border border-accounting-text/5 shadow-sm" />
+                      <Button variant="ghost" size="sm" onClick={() => { if (confirm('Delete this category?')) deleteCategory(cat.id) }} icon={Trash2} className="w-9 h-9 p-0 text-red-300 hover:text-red-500 bg-white border border-accounting-text/5 shadow-sm" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
 
         {/* Expense Categories */}
-        <div className="space-y-4">
-          <h2 className="text-[10px] font-black text-red-500/50 uppercase tracking-widest px-1 flex items-center gap-2">
-            <TrendingDown size={12} /> Expense Labels
-          </h2>
-          <div className="clay-card overflow-hidden">
-            {categoriesByType['Money Out'].length === 0 ? (
-              <p className="p-10 text-center text-[10px] font-black text-accounting-text/50 uppercase">No expense categories</p>
-            ) : (
-              categoriesByType['Money Out'].map((cat, i) => (
-                <div key={cat.id} className={cn('flex items-center justify-between p-4 group hover:bg-accounting-bg/20 transition-colors', i > 0 && 'border-t border-[#2D151F]/5')}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shadow-clay-inner">
-                      <Tag size={14} />
-                    </div>
-                    <span className="text-sm font-black text-[#2D151F]">{cat.name}</span>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => startEdit(cat)} 
-                      icon={Edit2}
-                      className="p-2 w-8 h-8 flex items-center justify-center text-accounting-text/60 hover:text-[#2D151F]"
-                    />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => { if(confirm('Delete this category?')) deleteCategory(cat.id) }} 
-                      icon={Trash2}
-                      className="p-2 w-8 h-8 flex items-center justify-center text-red-300 hover:text-red-500"
-                    />
-                  </div>
-                </div>
-              ))
-            )}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-[10px] font-black text-red-500/60 uppercase tracking-widest flex items-center gap-2">
+               <TrendingDown size={14} strokeWidth={3} /> Outflow Protocols
+            </h2>
+            <span className="text-[9px] font-black text-secondary-text/20 uppercase tracking-widest">{categoriesByType['Money Out'].length} Active</span>
           </div>
+          <Card className="overflow-hidden border border-accounting-text/5 shadow-xl">
+            {categoriesByType['Money Out'].length === 0 ? (
+              <div className="p-20 text-center space-y-3 opacity-20">
+                <Tag size={32} className="mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-widest leading-none">Registry Null</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-accounting-bg">
+                {categoriesByType['Money Out'].map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between p-5 group hover:bg-accounting-bg/10 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center -inner border border-white">
+                        <Tag size={16} strokeWidth={3} />
+                      </div>
+                      <span className="text-base font-black text-accounting-text tracking-tight group-hover:translate-x-0.5 transition-transform">{cat.name}</span>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all -translate-x-1 group-hover:translate-x-0">
+                      <Button variant="ghost" size="sm" onClick={() => startEdit(cat)} icon={Edit2} className="w-9 h-9 p-0 text-secondary-text hover:text-accounting-text bg-white border border-accounting-text/5 shadow-sm" />
+                      <Button variant="ghost" size="sm" onClick={() => { if (confirm('Delete this category?')) deleteCategory(cat.id) }} icon={Trash2} className="w-9 h-9 p-0 text-red-400 hover:text-red-600 bg-white border border-accounting-text/5 shadow-sm" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
       </div>
 
-      <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl flex gap-3">
-        <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
-        <p className="text-[10px] font-black text-amber-800 uppercase leading-relaxed tracking-wide">
-          Note: Deleting a category will not delete transactions using it, but it will no longer appear in filters or dropdowns.
-        </p>
-      </div>
+      {/* Utility Alert */}
+      <Card className="p-6 bg-amber-50/50 border border-amber-200/50 flex gap-4 shadow-none -inner">
+        <AlertCircle size={20} strokeWidth={3} className="text-amber-600 shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="text-[11px] font-black text-amber-800 uppercase tracking-wide leading-none">Strategic Maintenance Protocol</p>
+          <p className="text-[10px] font-bold text-amber-900/60 leading-relaxed italic">
+            Note: Tag deletion is a logical operation. Existing transactions will retain their historical labeling, but the tag will be purged from future selection matrices.
+          </p>
+        </div>
+      </Card>
     </div>
   );
 }
 
 export default function CategoriesPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center"><div className="w-10 h-10 bg-[#2D151F]/10 rounded-2xl animate-pulse mx-auto" /></div>}>
+    <Suspense fallback={<div className="py-20 text-center"><div className="w-12 h-12 border-4 border-accounting-text/10 border-t-accounting-text rounded-full animate-spin mx-auto" /></div>}>
       <CategoriesContent />
     </Suspense>
   );

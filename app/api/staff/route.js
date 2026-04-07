@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/src/lib/db';
 import { getServerSession } from '@/src/lib/auth-server';
+import bcrypt from 'bcryptjs';
 
 export async function GET(request) {
   try {
@@ -49,7 +50,18 @@ export async function POST(request) {
       [id, name, professionalEmail, role || 'Staff', note || '']
     );
 
-    await logActivity(session.user.id, 'Added Staff', 'Staff', { staffId: id, name });
+    // Auto-create User account for the staff
+    const userId = 'u_' + id;
+    const defaultPassword = 'Staff@123';
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    const defaultPermissions = JSON.stringify(['Tasks', 'Dashboard']);
+
+    await pool.query(
+      'INSERT INTO users (id, name, email, password, role, isActive, permissions) VALUES (?, ?, ?, ?, "staff", TRUE, ?)',
+      [userId, name, professionalEmail, hashedPassword, defaultPermissions]
+    );
+
+    await logActivity(session.user.id, 'Added Staff & User', 'Staff', { staffId: id, name });
 
     return NextResponse.json({ id, name, email: professionalEmail, role, note });
   } catch (error) {

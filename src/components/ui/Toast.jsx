@@ -33,17 +33,17 @@ export default function Toast({ message, type, onClose }) {
         borders[type]
       )}>
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-white/60 rounded-2xl shadow-clay-inner border border-white/20">
+          <div className="p-3 bg-white/60 rounded-2xl -inner border border-white/20">
             {icons[type]}
           </div>
           <div className="space-y-0.5">
-             <p className="text-[10px] font-black uppercase tracking-widest text-brand-dark/30">{type}</p>
-             <p className="text-sm font-black text-brand-dark leading-snug">{message}</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-brand-dark/30">{type}</p>
+            <p className="text-sm font-black text-brand-dark leading-snug">{message}</p>
           </div>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onClose}
           icon={X}
         />

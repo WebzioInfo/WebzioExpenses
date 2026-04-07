@@ -56,7 +56,7 @@ import { logActivity } from '@/src/lib/activity';
 export async function POST(request) {
   try {
     const session = await getServerSession();
-    if (!session || !session.staffId) {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

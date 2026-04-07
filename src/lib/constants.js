@@ -8,6 +8,7 @@ export const ENTRY_TYPES = {
 
 export const STAFF_ROLES = {
   ADMIN: 'Admin',
+  HR: 'HR',
   STAFF: 'Staff',
   FREELANCER: 'Freelancer',
 };

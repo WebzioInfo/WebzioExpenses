@@ -68,7 +68,7 @@ export default function ReportsPage() {
     return map;
   }, [filtered]);
 
-  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 bg-accounting-bg/10 rounded-2xl animate-pulse shadow-clay-inner" /></div>;
+  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 bg-accounting-bg/10 rounded-2xl animate-pulse -inner" /></div>;
 
   return (
     <div className="space-y-8 py-6">
@@ -80,11 +80,11 @@ export default function ReportsPage() {
         </div>
         <div className="flex gap-2">
           {DATE_OPTS.map(d => (
-            <Button 
-              key={d} 
+            <Button
+              key={d}
               variant={period === d ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => setPeriod(d)} 
+              onClick={() => setPeriod(d)}
               className={cn('px-4 rounded-xl text-[9px]', period !== d && 'bg-white text-accounting-bg/30')}
             >
               {d}
@@ -109,7 +109,7 @@ export default function ReportsPage() {
               { label: 'Salary', value: stats.salary, icon: Briefcase, color: 'text-amber-600', bg: 'bg-amber-50' },
             ].map(c => (
               <div key={c.label} className="clay-card p-6">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-clay-inner', c.bg)}>
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-3 -inner', c.bg)}>
                   <c.icon size={16} strokeWidth={2.5} className={c.color} />
                 </div>
                 <p className="text-[8px] font-black text-accounting-bg/30 uppercase tracking-widest">{c.label}</p>
@@ -142,7 +142,7 @@ export default function ReportsPage() {
             ) : (
               <div className="space-y-3">
                 {projectPnL.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-4 bg-accounting-bg/40 rounded-2xl shadow-clay-inner border border-white/40">
+                  <div key={p.id} className="flex items-center justify-between p-4 bg-accounting-bg/40 rounded-2xl -inner border border-white/40">
                     <div>
                       <p className="font-black text-accounting-bg text-sm">{p.name}</p>
                       {p.clientName && <p className="text-[8px] font-black text-accounting-bg/30 uppercase tracking-widest">{p.clientName}</p>}

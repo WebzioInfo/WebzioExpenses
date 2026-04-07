@@ -38,7 +38,7 @@ function PendingContent() {
 
   if (loading) return (
     <div className="space-y-4 py-8 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white/40 rounded-2xl shadow-clay-inner" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white/40 rounded-2xl -inner" />)}
     </div>
   );
 
@@ -67,11 +67,11 @@ function PendingContent() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 shadow-clay-inner">
+        <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 -inner">
           <p className="text-[10px] font-black text-emerald-600/50 uppercase tracking-widest mb-1">Owed to Us</p>
           <p className="text-3xl font-black text-emerald-600 tracking-tighter">{formatCurrency(totalOwed)}</p>
         </div>
-        <div className="p-6 bg-red-50 rounded-3xl border border-red-100 shadow-clay-inner">
+        <div className="p-6 bg-red-50 rounded-3xl border border-red-100 -inner">
           <p className="text-[10px] font-black text-red-500/50 uppercase tracking-widest mb-1">We Owe</p>
           <p className="text-3xl font-black text-red-500 tracking-tighter">{formatCurrency(totalToPay)}</p>
         </div>
@@ -92,12 +92,12 @@ function PendingContent() {
             const isInflow = entry.type === 'Money In' || entry.type === 'Added Money';
 
             return (
-              <div key={entry.id} className="clay-card p-5 border border-amber-100/50 relative overflow-hidden group hover:shadow-clay-outer hover:bg-white transition-all">
+              <div key={entry.id} className="clay-card p-5 border border-amber-100/50 relative overflow-hidden group hover:-outer hover:bg-white transition-all">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400" />
-                
+
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-clay-inner', typeConf.bg)}>
+                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0 -inner', typeConf.bg)}>
                       <TypeIcon size={20} className={typeConf.color} strokeWidth={2.5} />
                     </div>
                     <div>

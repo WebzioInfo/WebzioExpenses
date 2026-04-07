@@ -2,42 +2,45 @@ import React from 'react';
 import { cn } from '@/src/lib/utils';
 import { Loader2 } from 'lucide-react';
 
-const Button = ({ 
-  children, 
-  onClick, 
-  className, 
-  variant = 'primary', 
+const Button = ({
+  children,
+  onClick,
+  className,
+  variant = 'primary',
   size = 'md',
   icon: Icon,
-  iconSize = 14,
+  iconSize = 16,
   isLoading = false,
   disabled = false,
   fullWidth = false,
   type = 'button',
-  ...props 
+  ...props
 }) => {
-  
+
   const variants = {
-    // Premium Dark (Default for primary actions)
-    primary: 'bg-[#2D151F] text-[#F4F3DC] shadow-clay-outer hover:bg-clay-plum active:shadow-clay-inner',
-    
-    // Light Cream (For specialized highlighted actions)
-    secondary: 'bg-[#F4F3DC] text-[#2D151F] shadow-clay-outer hover:bg-white active:shadow-clay-inner',
-    
-    // White Outline (For secondary/neutral actions)
-    outline: 'bg-white border border-[#2D151F]/10 text-[#2D151F]/60 shadow-clay-outer hover:bg-[#F4F3DC]/40 active:shadow-clay-inner',
-    
+    // Primary: #2D151F
+    primary: 'clay-btn-primary',
+
+    // Secondary: Border 1px solid #2D151F
+    secondary: 'clay-btn-secondary',
+
+    // Neutral Outline (Legacy support, mapped to secondary or ghost)
+    outline: 'clay-btn-secondary opacity-70',
+
     // Minimalist
-    ghost: 'bg-transparent text-[#2D151F]/40 hover:text-[#2D151F] hover:bg-[#2D151F]/5',
+    ghost: 'hover:bg-accounting-text/5 text-accounting-text/60 hover:text-accounting-text',
+
+    // Error/Danger: #b91c1c
+    danger: 'clay-btn-danger',
     
-    // Error/Danger
-    danger: 'bg-red-50 text-red-600 border border-red-100 shadow-clay-outer hover:bg-red-100 active:shadow-clay-inner',
+    // Disabled (handled by class but can be explicit)
+    disabled: 'clay-btn-disabled',
   };
 
   const sizes = {
-    sm: 'h-9 px-4 text-[9px]',
-    md: 'h-11 px-7 text-[10px]',
-    lg: 'h-12 px-9 text-[11px]',
+    sm: 'h-9 px-4 text-[10px]',
+    md: 'h-11 px-7 text-[11px]',
+    lg: 'h-13 px-9 text-[12px]',
   };
 
   return (
@@ -46,8 +49,8 @@ const Button = ({
       onClick={onClick}
       disabled={disabled || isLoading}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-2xl font-black uppercase tracking-widest transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95',
-        variants[variant],
+        'clay-btn transition-all duration-300 active:scale-95 disabled:scale-100',
+        disabled || isLoading ? 'clay-btn-disabled' : variants[variant],
         sizes[size],
         fullWidth && 'w-full',
         className
@@ -57,9 +60,9 @@ const Button = ({
       {isLoading ? (
         <Loader2 className="animate-spin" size={iconSize} />
       ) : Icon && (
-        <Icon size={iconSize} strokeWidth={2.5} className="shrink-0" />
+        <Icon size={iconSize} strokeWidth={3} className="shrink-0" />
       )}
-      <span>{children}</span>
+      {children && <span>{children}</span>}
     </button>
   );
 };

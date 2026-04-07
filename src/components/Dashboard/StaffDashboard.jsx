@@ -1,170 +1,178 @@
+'use client';
+
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Briefcase, CheckCircle2, Clock, AlertCircle, TrendingUp, TrendingDown, Coins, ChevronRight } from 'lucide-react';
+import { 
+  Briefcase, 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle, 
+  TrendingUp, 
+  TrendingDown, 
+  Coins, 
+  ChevronRight,
+  Zap,
+  Award,
+  Wallet,
+  History,
+  Target
+} from 'lucide-react';
 import { formatCurrency, cn } from '@/src/lib/utils';
-import { Card } from '../ui/Card';
+import Card from '../ui/Card';
 import Button from '../ui/Button';
 
 export const StaffDashboard = ({ user, tasks = [], entries = [], loading }) => {
   const router = useRouter();
+  
   const stats = useMemo(() => {
-    const total = tasks.length;
-    const completed = tasks.filter(t => t.status === 'Completed').length;
-    const pending = tasks.filter(t => t.status === 'In Progress').length;
+    const activeTasks = tasks.filter(t => t.isActive !== false);
+    const total = activeTasks.length;
+    const completed = activeTasks.filter(t => t.status === 'Completed').length;
+    const pending = activeTasks.filter(t => t.status === 'In Progress').length;
     const today = new Date().toISOString().split('T')[0];
-    const delayed = tasks.filter(t => t.status !== 'Completed' && t.dueDate && t.dueDate < today).length;
+    const delayed = activeTasks.filter(t => t.status !== 'Completed' && t.dueDate && t.dueDate < today).length;
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-    // Financials
-    const income = entries.filter(e => e.type === 'Money In' || e.type === 'Salary').reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
-    const expenses = entries.filter(e => e.type === 'Money Out').reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
-    const added = entries.filter(e => e.type === 'Added Money').reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+    const myEntries = entries.filter(e => e.personId === user?.staffId);
+    
+    // Earnings for staff: Salary + Money Out (paid to them)
+    const income = myEntries.filter(e => e.type === 'Salary' || e.type === 'Money Out').reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0);
+    const added = myEntries.filter(e => e.type === 'Added Money' || e.type === 'Money In').reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0);
+    const expenses = 0; 
 
     return { total, completed, pending, delayed, rate, income, expenses, added };
-  }, [tasks, entries]);
+  }, [tasks, entries, user?.staffId]);
 
-  if (loading) return <div className="animate-pulse space-y-6">
-    <div className="h-32 bg-[#2D151F]/5 rounded-3xl" />
-    <div className="grid grid-cols-3 gap-4">
-      <div className="h-40 bg-[#2D151F]/5 rounded-3xl" />
-      <div className="h-40 bg-[#2D151F]/5 rounded-3xl" />
-      <div className="h-40 bg-[#2D151F]/5 rounded-3xl" />
+  if (loading) return (
+    <div className="flex items-center justify-center py-32">
+       <div className="w-10 h-10 border-4 border-accounting-text/10 border-t-accounting-text rounded-full animate-spin" />
     </div>
-  </div>;
+  );
 
   return (
     <div className="space-y-10 py-6">
       {/* Welcome & Performance Hero */}
-      <Card variant="dark" className="p-8 md:p-10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+      <Card className="p-10 relative overflow-hidden border border-accounting-text/5 shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accounting-bg/40 rounded-full -mr-32 -mt-32 -inner pointer-events-none" />
         
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
-          <div className="text-center md:text-left space-y-2">
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Personal Workspace</p>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-              Hello, <span className="text-emerald-400">{user?.name?.split(' ')[0]}</span>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-10 relative z-10">
+          <div className="text-center md:text-left space-y-4 flex-1">
+            <div className="flex items-center justify-center md:justify-start gap-2">
+               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+               <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest">Active Workspace</p>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-black text-accounting-text tracking-tighter leading-none">
+              Hello, <span className="opacity-40">{user?.name?.split(' ')[0]}</span>
             </h1>
-            <p className="text-white/60 font-medium max-w-md">
-              You have {stats.pending} tasks in progress and {stats.delayed > 0 ? `${stats.delayed} delayed` : 'no delays'}.
+            <p className="text-secondary-text text-sm font-bold max-w-md leading-relaxed italic">
+              Your workflow is at <span className="text-emerald-600">{stats.rate}% efficiency</span> with {stats.pending} active goals currently in progress.
             </p>
           </div>
 
-          {/* Performance Circle */}
-          <div className="relative w-32 h-32 flex items-center justify-center">
+          <div className="relative w-40 h-40 flex items-center justify-center shrink-0">
             <svg className="w-full h-full transform -rotate-90">
-              <circle
-                cx="64" cy="64" r="58"
-                fill="transparent"
-                stroke="rgba(255,255,255,0.05)"
-                strokeWidth="12"
-              />
-              <circle
-                cx="64" cy="64" r="58"
-                fill="transparent"
-                stroke="currentColor"
-                strokeWidth="12"
-                strokeDasharray={364.4}
-                strokeDashoffset={364.4 - (364.4 * stats.rate) / 100}
-                strokeLinecap="round"
-                className="text-emerald-400 transition-all duration-1000 ease-out"
-              />
+              <circle cx="80" cy="80" r="72" fill="transparent" stroke="rgba(45,21,31,0.05)" strokeWidth="14" />
+              <circle cx="80" cy="80" r="72" fill="transparent" stroke="currentColor" strokeWidth="14"
+                strokeDasharray={452.4} strokeDashoffset={452.4 - (452.4 * stats.rate) / 100}
+                strokeLinecap="round" className="text-accounting-text transition-all duration-1000 ease-out" />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-black text-white">{stats.rate}%</span>
-              <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Score</span>
+              <span className="text-4xl font-black text-accounting-text tracking-tighter">{stats.rate}%</span>
+              <span className="text-[9px] font-black text-secondary-text/40 uppercase tracking-widest">Score</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
-           <QuickStat label="Assigned" value={stats.total} icon={Briefcase} />
-           <QuickStat label="Completed" value={stats.completed} icon={CheckCircle2} />
-           <QuickStat label="Pending" value={stats.pending} icon={Clock} />
-           <QuickStat label="Delayed" value={stats.delayed} icon={AlertCircle} isWarning={stats.delayed > 0} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 relative z-10">
+          <QuickStat label="Assigned" value={stats.total} icon={Target} color="text-accounting-text" />
+          <QuickStat label="Completed" value={stats.completed} icon={CheckCircle2} color="text-emerald-600" />
+          <QuickStat label="In Transit" value={stats.pending} icon={Zap} color="text-blue-600" />
+          <QuickStat label="Overdue" value={stats.delayed} icon={AlertCircle} color={stats.delayed > 0 ? "text-red-500" : "text-secondary-text/30"} isWarning={stats.delayed > 0} />
         </div>
       </Card>
 
-      {/* My Work Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
-            <h2 className="text-xl font-black text-[#2D151F] flex items-center gap-3">
-              <Briefcase size={22} strokeWidth={2.5} />
-              My Tasks
-            </h2>
-            <Button variant="ghost" size="sm" icon={ChevronRight} onClick={() => router.push('/tasks')} className="text-emerald-600 hover:text-emerald-700 text-[10px]">View All</Button>
+            <div className="flex items-center gap-2">
+               <Briefcase size={16} className="text-accounting-text" strokeWidth={3} />
+               <h3 className="text-[10px] font-black text-secondary-text uppercase tracking-widest leading-none">Operational Directives</h3>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => router.push('/tasks')} className="h-8 text-[9px]">
+               View Registry <ChevronRight size={10} className="ml-1" strokeWidth={3} />
+            </Button>
           </div>
-          
+
           <div className="space-y-4">
             {tasks.length === 0 ? (
-              <EmptyPlaceholder icon={Briefcase} message="No tasks assigned yet" />
+              <EmptyPlaceholder icon={Briefcase} message="No directives found in the system matrix." />
             ) : (
               tasks.slice(0, 5).map(task => (
-                <Card key={task.id} className="p-5 flex items-center justify-between group hover:border-[#2D151F]/20 transition-colors">
-                  <div className="flex items-center gap-4">
+                <Card key={task.id} className="p-6 flex items-center justify-between group border border-transparent hover:border-accounting-text/5">
+                  <div className="flex items-center gap-5">
                     <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center shadow-clay-inner shrink-0",
-                      task.status === 'Completed' ? "bg-emerald-50 text-emerald-600" : 
-                      task.status === 'In Progress' ? "bg-blue-50 text-blue-600" : "bg-purple-50 text-purple-600"
+                      "w-10 h-10 rounded-2xl flex items-center justify-center -inner border border-white",
+                      task.status === 'Completed' ? "bg-emerald-50 text-emerald-600" :
+                        task.status === 'In Progress' ? "bg-blue-50 text-blue-600" : "bg-accounting-bg text-secondary-text/30"
                     )}>
-                      {task.status === 'Completed' ? <CheckCircle2 size={18} /> : <Clock size={18} />}
+                      {task.status === 'Completed' ? <CheckCircle2 size={18} strokeWidth={3} /> : <Zap size={18} strokeWidth={3} />}
                     </div>
                     <div>
-                      <h4 className="font-black text-[#2D151F] text-sm leading-tight">{task.title}</h4>
-                      <p className="text-[10px] font-black text-[#2D151F]/40 uppercase tracking-wider mt-1">
-                        Due: {task.dueDate || 'No date'} • {task.priority} Priority
+                      <h4 className="font-black text-accounting-text text-sm tracking-tight leading-none group-hover:translate-x-1 transition-transform">{task.title}</h4>
+                      <p className="text-[9px] font-black text-secondary-text/40 uppercase tracking-widest mt-2">
+                        Deadline: {task.dueDate || 'Open'} • {task.priority} Priority
                       </p>
                     </div>
                   </div>
-                  <div className={cn(
-                    "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-clay-inner",
-                    task.status === 'Completed' ? "bg-emerald-100 text-emerald-700" : 
-                    task.status === 'In Progress' ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
+                  <span className={cn(
+                    "px-3 py-1 rounded-xl text-[8px] font-black uppercase tracking-widest border -inner shadow-sm",
+                    task.status === 'Completed' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                      task.status === 'In Progress' ? "bg-blue-50 text-blue-700 border-blue-100" : "bg-accounting-bg text-secondary-text/50 border-white"
                   )}>
                     {task.status}
-                  </div>
+                  </span>
                 </Card>
               ))
             )}
           </div>
         </section>
 
-        {/* My Money Section */}
         <section className="space-y-6">
-          <h2 className="text-xl font-black text-[#2D151F] flex items-center gap-3 px-2">
-            <Coins size={22} strokeWidth={2.5} />
-            My Money
-          </h2>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FinanceCard label="Total Earnings" amount={stats.income} icon={TrendingUp} variant="success" />
-            <FinanceCard label="Total Expenses" amount={stats.expenses} icon={TrendingDown} variant="error" />
-            <FinanceCard label="Added Funds" amount={stats.added} icon={Coins} variant="blue" />
-            <FinanceCard label="Net Balance" amount={stats.income - stats.expenses} icon={CheckCircle2} variant="warning" />
+          <div className="flex items-center gap-2 px-2">
+             <Wallet size={16} className="text-accounting-text" strokeWidth={3} />
+             <h3 className="text-[10px] font-black text-secondary-text uppercase tracking-widest leading-none">Financial Settlement</h3>
           </div>
 
-          <div className="mt-8">
-            <h3 className="text-xs font-black text-[#2D151F]/40 uppercase tracking-widest px-2 mb-4">Recent Transactions</h3>
-            <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <FinanceStat label="Total Payouts" value={stats.income} icon={TrendingUp} variant="success" />
+            <FinanceStat label="Net Receivable" value={stats.income - stats.expenses} icon={Award} variant="plum" />
+          </div>
+
+          <div className="mt-10">
+            <div className="flex items-center justify-between px-2 mb-4">
+               <p className="text-[9px] font-black text-secondary-text/40 uppercase tracking-widest">Recent ledger entries</p>
+               <History size={12} className="text-secondary-text/20" />
+            </div>
+            <div className="space-y-2">
               {entries.length === 0 ? (
-                <EmptyPlaceholder icon={Coins} message="No financial data available" />
+                <EmptyPlaceholder icon={Coins} message="No fiscal records available." />
               ) : (
                 entries.slice(0, 4).map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between p-4 bg-white/40 border border-[#2D151F]/5 rounded-2xl">
-                    <div className="flex items-center gap-3">
+                  <Card key={entry.id} className="flex items-center justify-between p-4 border border-transparent hover:border-accounting-text/5">
+                    <div className="flex items-center gap-4">
                       <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        entry.type === 'Money Out' ? "bg-red-500" : "bg-emerald-500"
+                        "w-1.5 h-6 rounded-full",
+                        (entry.type === 'Money Out' || entry.type === 'Salary' || entry.type === 'Money In' || entry.type === 'Added Money') ? "bg-emerald-500" : "bg-red-500"
                       )} />
-                      <span className="text-xs font-bold text-[#2D151F]">{entry.title}</span>
+                      <span className="text-xs font-black text-accounting-text tracking-tight">{entry.title}</span>
                     </div>
                     <span className={cn(
-                      "text-xs font-black",
-                      entry.type === 'Money Out' ? "text-red-600" : "text-emerald-600"
+                      "text-sm font-black tracking-tighter",
+                      (entry.type === 'Money Out' || entry.type === 'Salary' || entry.type === 'Money In' || entry.type === 'Added Money') ? "text-emerald-600" : "text-red-500"
                     )}>
-                      {entry.type === 'Money Out' ? '-' : '+'}{formatCurrency(entry.amount)}
+                      {(entry.type === 'Money Out' || entry.type === 'Salary' || entry.type === 'Money In' || entry.type === 'Added Money') ? '+' : '-'}{formatCurrency(entry.amount)}
                     </span>
-                  </div>
+                  </Card>
                 ))
               )}
             </div>
@@ -175,42 +183,40 @@ export const StaffDashboard = ({ user, tasks = [], entries = [], loading }) => {
   );
 };
 
-const QuickStat = ({ label, value, icon: Icon, isWarning }) => (
+const QuickStat = ({ label, value, icon: Icon, color, isWarning }) => (
   <div className={cn(
-    "p-4 rounded-2xl bg-white/5 border border-white/10 shadow-clay-inner",
-    isWarning && "border-red-400/30 bg-red-400/5 text-red-400"
+    "p-5 rounded-3xl bg-accounting-bg/30 border border-white -inner transition-all",
+    isWarning && "border-red-100 bg-red-50 shadow-lg shadow-red-100/50"
   )}>
-    <div className="flex items-center gap-2 mb-1">
-      <Icon size={12} strokeWidth={3} className={cn("text-white/40", isWarning && "text-red-400")} />
-      <span className={cn("text-[8px] font-black text-white/40 uppercase tracking-widest", isWarning && "text-red-400/60")}>{label}</span>
+    <div className="flex items-center gap-2 mb-2">
+      <Icon size={12} strokeWidth={3} className={cn("opacity-40", isWarning ? "text-red-500" : color)} />
+      <span className={cn("text-[9px] font-black uppercase tracking-widest opacity-40", isWarning && "text-red-700")}>{label}</span>
     </div>
-    <p className="text-xl font-black tracking-tight">{value}</p>
+    <p className={cn("text-3xl font-black tracking-tighter leading-none", isWarning ? "text-red-600" : color)}>{value}</p>
   </div>
 );
 
-const FinanceCard = ({ label, amount, icon: Icon, variant }) => {
+const FinanceStat = ({ label, value, icon: Icon, variant }) => {
   const styles = {
-    success: "text-emerald-600 bg-emerald-50",
-    error: "text-red-500 bg-red-50",
-    blue: "text-blue-600 bg-blue-50",
-    warning: "text-amber-600 bg-amber-50",
+    success: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+    plum: 'text-accounting-text bg-accounting-bg/40 border-accounting-text/10',
   };
   return (
-    <Card className="p-6">
-      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-clay-inner", styles[variant])}>
-        <Icon size={18} strokeWidth={2.5} />
+    <Card className="p-8 border border-transparent hover:border-accounting-text/5 group">
+      <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-4 -inner border border-white group-hover:scale-110 transition-transform", styles[variant].split(' ')[1])}>
+        <Icon size={20} strokeWidth={3} className={styles[variant].split(' ')[0]} />
       </div>
-      <p className="text-[9px] font-black text-[#2D151F]/40 uppercase tracking-widest leading-none mb-1.5">{label}</p>
-      <p className={cn("text-xl font-black tracking-tight", styles[variant].split(' ')[0])}>
-        {formatCurrency(amount)}
+      <p className="text-[10px] font-black text-secondary-text/40 uppercase tracking-widest leading-none mb-2">{label}</p>
+      <p className={cn("text-3xl font-black tracking-tighter leading-none", styles[variant].split(' ')[0])}>
+        {formatCurrency(value)}
       </p>
     </Card>
   );
 };
 
 const EmptyPlaceholder = ({ icon: Icon, message }) => (
-  <div className="flex flex-col items-center justify-center py-10 px-4 bg-white/20 border-2 border-dashed border-[#2D151F]/5 rounded-3xl">
-    <Icon size={32} className="text-[#2D151F]/10 mb-3" strokeWidth={1.5} />
-    <p className="text-xs font-bold text-[#2D151F]/30">{message}</p>
-  </div>
+  <Card className="flex flex-col items-center justify-center py-16 text-center space-y-4 opacity-30 border-2 border-dashed bg-transparent shadow-none">
+    <Icon size={32} strokeWidth={1.5} />
+    <p className="text-[10px] font-black uppercase tracking-widest italic leading-relaxed px-10">{message}</p>
+  </Card>
 );

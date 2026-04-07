@@ -18,32 +18,33 @@ import { StaffDashboard } from '@/src/components/Dashboard/StaffDashboard';
 export default function Dashboard() {
   const { entries = [], projects = [], staff = [], tasks = [], loading } = useApp();
   const { user, isAdmin } = useAuth();
-  
+
   if (loading) return (
     <div className="space-y-10 py-6">
       <div className="h-10 w-64 bg-[#2D151F]/5 animate-pulse rounded-xl mb-8" />
-      <div className="h-64 bg-[#2D151F]/5 animate-pulse rounded-3xl mb-8 shadow-clay-inner" />
+      <div className="h-64 bg-[#2D151F]/5 animate-pulse rounded-3xl mb-8 -inner" />
       <div className="grid grid-cols-5 gap-4">
-        {[1,2,3,4,5].map(i => <div key={i} className="h-32 bg-[#2D151F]/5 animate-pulse rounded-2xl shadow-clay-inner" />)}
+        {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-32 bg-[#2D151F]/5 animate-pulse rounded-2xl -inner" />)}
       </div>
     </div>
   );
 
   // If Admin -> Show Full Admin Dashboard
   if (isAdmin) {
-    return <AdminDashboard 
+    return <AdminDashboard
       user={user}
-      entries={entries} 
-      projects={projects} 
-      staff={staff} 
-      tasks={tasks} 
+      entries={entries}
+      projects={projects}
+      staff={staff}
+      tasks={tasks}
     />;
   }
 
   // If Staff/Freelancer -> Show Personal Dashboard
-  return <StaffDashboard 
-    user={user} 
-    tasks={tasks} 
+  return <StaffDashboard
+    user={user}
+    tasks={tasks}
     entries={entries}
+    loading={loading}
   />;
 }

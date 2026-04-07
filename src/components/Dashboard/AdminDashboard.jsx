@@ -9,7 +9,7 @@ import { formatCurrency } from '@/src/lib/utils';
 
 export const AdminDashboard = ({ user, entries = [], projects = [], staff = [], tasks = [] }) => {
   const stats = useStats(entries);
-  
+
   const crmStats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     return {
@@ -38,7 +38,7 @@ export const AdminDashboard = ({ user, entries = [], projects = [], staff = [], 
 
       {/* Pending Net Benefit Alert */}
       {stats.pendingIn > 0 && (
-        <div className="flex items-center justify-between p-5 bg-accounting-bg border border-amber-200 rounded-2xl shadow-clay-inner">
+        <div className="flex items-center justify-between p-5 bg-accounting-bg border border-amber-200 rounded-2xl -inner">
           <div className="flex items-center gap-3">
             <AlertCircle size={20} className="text-amber-600 shrink-0" strokeWidth={2.5} />
             <div>

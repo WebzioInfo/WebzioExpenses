@@ -25,9 +25,9 @@ export async function POST(request) {
     
     await pool.query(
       'INSERT INTO users (id, name, email, password, role, isActive, permissions) VALUES (?, ?, ?, ?, ?, TRUE, ?)',
-      [id, name, email, hashedPassword, role || 'staff', JSON.stringify(permissions || ["Tasks"])]
+      [id, name, email, hashedPassword, role || 'Staff', JSON.stringify(permissions || ["Tasks"])]
     );
-    return NextResponse.json({ id, name, email, role: role || 'staff', permissions });
+    return NextResponse.json({ id, name, email, role: role || 'Staff', permissions });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 });

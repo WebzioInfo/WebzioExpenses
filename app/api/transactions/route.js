@@ -62,8 +62,7 @@ export async function POST(request) {
     }
 
     if (!session.isAdmin) {
-      personId = session.staffId;
-      if (!personId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'Access Denied: Admins only' }, { status: 403 });
     }
 
     const id = Date.now().toString();
@@ -97,8 +96,8 @@ export async function PUT(request) {
     const [existing] = await pool.query('SELECT personId FROM transactions WHERE id = ?', [id]);
     if (existing.length === 0) return NextResponse.json({ error: 'Entry not found' }, { status: 404 });
 
-    if (!session.isAdmin && existing[0].personId !== session.staffId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!session.isAdmin) {
+      return NextResponse.json({ error: 'Access Denied: Admins only' }, { status: 403 });
     }
 
     await pool.query(

@@ -332,6 +332,48 @@ export const ConfigProvider = ({ children }) => {
     }
   };
 
+  // Account management
+  const addAccount = async (data) => {
+    try {
+      const res = await fetch('/api/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error();
+      showToast(`Account "${data.name}" created.`, 'success');
+      await fetchConfig();
+    } catch {
+      showToast('Could not create account.', 'error');
+    }
+  };
+
+  const updateAccount = async (id, data) => {
+    try {
+      const res = await fetch('/api/accounts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...data }),
+      });
+      if (!res.ok) throw new Error();
+      showToast('Account updated.', 'success');
+      await fetchConfig();
+    } catch {
+      showToast('Could not update account.', 'error');
+    }
+  };
+
+  const deleteAccount = async (id) => {
+    try {
+      const res = await fetch(`/api/accounts?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      showToast('Account disabled.', 'success');
+      await fetchConfig();
+    } catch {
+      showToast('Could not disable account.', 'error');
+    }
+  };
+
   const updateSystemUserPermissions = async (userId, data) => {
     try {
       const res = await fetch('/api/settings/permissions', {
@@ -354,6 +396,7 @@ export const ConfigProvider = ({ children }) => {
       addSystemUser, updateSystemUser, updateSystemUserPermissions,
       addProject, updateProject, deleteProject,
       addCategory, updateCategory, deleteCategory,
+      addAccount, updateAccount, deleteAccount,
       addTask, updateTask, deleteTask,
       addLead, updateLead, deleteLead,
       addClient, updateClient, deleteClient,

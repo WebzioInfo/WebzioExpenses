@@ -32,7 +32,7 @@ const DEFAULT = {
 export const QuickAdd = () => {
   const { addTransaction } = useTransactions();
   const { accounts, categories } = useConfig();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(DEFAULT);
   const [saving, setSaving] = useState(false);
@@ -56,29 +56,31 @@ export const QuickAdd = () => {
 
   return (
     <>
-      <Button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-8 right-8 z-40 w-16 h-16 p-0"
-        title="Quick Add"
-        icon={Plus}
-        iconSize={28}
-      />
+      {isAdmin && (
+        <Button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-8 right-8 z-40 w-16 h-16 p-0"
+          title="Quick Add"
+          icon={Plus}
+          iconSize={28}
+        />
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
           <div className="absolute inset-0 bg-accounting-text/20 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-clay-outer border border-white/50 animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300">
-            <div className="absolute inset-0 rounded-t-3xl sm:rounded-3xl pointer-events-none shadow-clay-inner" />
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl -outer border border-white/50 animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-300">
+            <div className="absolute inset-0 rounded-t-3xl sm:rounded-3xl pointer-events-none -inner" />
 
             <div className="flex items-center justify-between p-6 pb-4 border-b border-accounting-text/5">
               <div>
                 <h3 className="text-xl font-black text-accounting-text tracking-tighter">Quick Add</h3>
                 <p className="text-[9px] font-black text-accounting-text/30 uppercase tracking-widest mt-0.5">Save entry instantly</p>
               </div>
-              <Button 
+              <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setOpen(false)} 
+                onClick={() => setOpen(false)}
                 icon={X}
                 className="w-9 h-9 p-0"
               />
