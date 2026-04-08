@@ -142,11 +142,11 @@ export default function UsersPage() {
                         <p className="font-black text-accounting-text text-base tracking-tight leading-none">{user.name}</p>
                         <span className={cn(
                           'px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-lg border -inner flex items-center gap-1.5',
-                          user.role === 'Admin' ? 'bg-purple-50 text-purple-700 border-purple-100' : 
-                          user.role === 'HR' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                          user.role?.toLowerCase() === 'admin' ? 'bg-purple-50 text-purple-700 border-purple-100' : 
+                          user.role?.toLowerCase() === 'hr' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                           'bg-accounting-bg/60 text-secondary-text border-white'
                         )}>
-                          {user.role === 'Admin' ? <ShieldCheck size={9} strokeWidth={3} /> : <User size={9} strokeWidth={3} />}
+                          {user.role?.toLowerCase() === 'admin' ? <ShieldCheck size={9} strokeWidth={3} /> : <User size={9} strokeWidth={3} />}
                           {user.role}
                         </span>
                       </div>

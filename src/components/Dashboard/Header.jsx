@@ -6,7 +6,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import Button from '../ui/Button';
 
 export const DashboardHeader = ({ user }) => {
-  const { isAdmin } = useAuth();
+  const { isManagement } = useAuth();
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
@@ -17,13 +17,13 @@ export const DashboardHeader = ({ user }) => {
         </h1>
         <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest mt-3 opacity-70 italic">{today}</p>
       </div>
-      {isAdmin && (
+      {isManagement && (
         <Link href="/add-transaction">
           <Button 
             icon={ArrowRight}
             className="h-12 px-8 group"
           >
-            Add Entry
+            Record Event
           </Button>
         </Link>
       )}

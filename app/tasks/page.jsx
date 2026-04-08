@@ -18,7 +18,11 @@ import {
   Zap,
   Users,
   LayoutGrid,
-  Info
+  Info,
+  Link2,
+  FileCheck2,
+  AlertOctagon,
+  MessageSquareQuote
 } from 'lucide-react';
 import Button from '@/src/components/ui/Button';
 import Card from '@/src/components/ui/Card';
@@ -32,15 +36,17 @@ const PRIORITY_STYLES = {
 };
 
 const STATUS_ICONS = {
+  'Approved': { icon: FileCheck2, color: 'text-emerald-500', bg: 'bg-emerald-50/50' },
+  'Needs Revision': { icon: AlertOctagon, color: 'text-rose-500', bg: 'bg-rose-50/50' },
   'Completed': { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-  'In Progress': { icon: Zap, color: 'text-blue-500', bg: 'bg-blue-50' },
+  'In Progress': { icon: Zap, color: 'text-indigo-500', bg: 'bg-indigo-50' },
   'Not Started': { icon: Clock, color: 'text-secondary-text/30', bg: 'bg-accounting-bg/40' },
-  'Delayed': { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50' },
+  'Delayed': { icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-50' },
 };
 
 export default function TasksPage() {
   const { tasks = [], staff = [], projects = [], addTask, updateTask, deleteTask, loading } = useApp();
-  const { user, isAdmin, isManagement } = useAuth();
+  const { user, isManagement, isFounder } = useAuth();
 
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -55,7 +61,10 @@ export default function TasksPage() {
     projectId: '',
     status: 'Not Started',
     priority: 'Medium',
-    dueDate: ''
+    dueDate: '',
+    fileUrl: '',
+    reviewStatus: 'Pending',
+    reviewNotes: ''
   });
   const [saving, setSaving] = useState(false);
 
@@ -74,7 +83,10 @@ export default function TasksPage() {
       projectId: task.projectId || '',
       status: task.status || 'Not Started',
       priority: task.priority || 'Medium',
-      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
+      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+      fileUrl: task.fileUrl || '',
+      reviewStatus: task.reviewStatus || 'Pending',
+      reviewNotes: task.reviewNotes || ''
     });
     setModal(true);
   };
@@ -91,10 +103,13 @@ export default function TasksPage() {
     };
   }, [tasks]);
 
-  const filteredTasks = useMemo(() => {
+    const [founderView, setFounderView] = useState('Company'); // 'Company' or 'Personal'
+
+    const filteredTasks = useMemo(() => {
     let result = [...tasks];
     const today = new Date().toISOString().split('T')[0];
 
+    // RBAC: Staff only see their own tasks
     if (!isManagement) {
       const staffRecord = staff.find(s => s.email === user?.email);
       if (staffRecord) {
@@ -102,6 +117,14 @@ export default function TasksPage() {
       } else {
         result = [];
       }
+    }
+
+    // Founder Personal Portal
+    if (isFounder && founderView === 'Personal') {
+       const staffRecord = staff.find(s => s.email === user?.email);
+       if (staffRecord) {
+         result = result.filter(t => t.assignedTo === staffRecord.id);
+       }
     }
 
     if (search) {
@@ -119,7 +142,7 @@ export default function TasksPage() {
     if (filterPriority !== 'All') result = result.filter(t => t.priority === filterPriority);
 
     return result;
-  }, [tasks, search, filterStatus, filterStaff, filterPriority, isAdmin, user, staff]);
+  }, [tasks, search, filterStatus, filterStaff, filterPriority, user, staff, isFounder, founderView, isManagement]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -170,14 +193,48 @@ export default function TasksPage() {
           <div className="flex-1">
             <Input
               icon={Search}
-              label="Goal Search"
-              placeholder="Search objective matrix by title or scope..."
+              label={isFounder ? "Operational Search" : "Goal Search"}
+              placeholder="Search objective matrix..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-4">
-            {/* Filtering logic here if needed beyond inputs */}
+          <div className="flex p-1 bg-accounting-bg/40 rounded-2xl -inner border border-white/50">
+            {isFounder ? (
+                ['Company', 'Personal'].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setFounderView(m)}
+                    className={cn(
+                      "px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                      founderView === m ? "bg-accounting-text text-white shadow-lg" : "text-secondary-text/60 hover:text-accounting-text"
+                    )}
+                  >
+                    {m} Portal
+                  </button>
+                ))
+            ) : (
+              <>
+                <button 
+                  onClick={() => setViewMode('daily')}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'daily' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
+                  )}
+                >
+                  <ListFilter size={14} strokeWidth={3} /> Daily
+                </button>
+                <button 
+                  onClick={() => setViewMode('matrix')}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'matrix' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
+                  )}
+                >
+                  <LayoutGrid size={14} strokeWidth={3} /> Matrix
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -221,7 +278,7 @@ export default function TasksPage() {
               task={task}
               user={user}
               staff={staff}
-              isAdmin={isAdmin}
+              isFounder={isFounder}
               isManagement={isManagement}
               onStatusUpdate={updateStatus}
               onEdit={() => openEdit(task)}
@@ -278,6 +335,32 @@ export default function TasksPage() {
             <Input label="Hard Execution Deadline" type="date" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} />
           </div>
 
+          <Input 
+            icon={Link2} 
+            label="Tactical Asset Link (Code/Design/Video)" 
+            placeholder="https://github.com/... or https://figma.com/..." 
+            value={form.fileUrl} 
+            onChange={e => setForm({ ...form, fileUrl: e.target.value })} 
+          />
+
+          {isManagement && (
+            <div className="pt-8 border-t border-accounting-bg space-y-4">
+               <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Tactical Review Protocol</label>
+               <Select value={form.reviewStatus} onChange={e => setForm({ ...form, reviewStatus: e.target.value })}>
+                  <option value="Pending">Awaiting Submission</option>
+                  <option value="Under Review">Active Manual Audit</option>
+                  <option value="Needs Revision">Revision Required</option>
+                  <option value="Approved">Mission Success / Approved</option>
+               </Select>
+               <textarea
+                className="clay-input w-full min-h-[80px] resize-none text-[12px] leading-relaxed placeholder:text-secondary-text/20"
+                placeholder="Add critical feedback or revision directives..."
+                value={form.reviewNotes}
+                onChange={e => setForm({ ...form, reviewNotes: e.target.value })}
+              />
+            </div>
+          )}
+
           <div className="flex gap-4 pt-6 border-t border-accounting-bg">
             <Button type="submit" isLoading={saving} fullWidth className="h-14">
               {editId ? 'Authorize commit' : 'Initialize Objective'}
@@ -299,7 +382,7 @@ const StatCard = ({ label, value, variant }) => {
   );
 };
 
-const TaskCard = ({ task, user, staff, isManagement, onStatusUpdate, onEdit, onDelete }) => {
+const TaskCard = ({ task, user, staff, isFounder, isManagement, onStatusUpdate, onEdit, onDelete }) => {
   const isDelayed = task.status !== 'Completed' && task.dueDate && task.dueDate < new Date().toISOString().split('T')[0];
   const statusKey = isDelayed ? 'Delayed' : (task.status || 'Not Started');
   const status = STATUS_ICONS[statusKey] || STATUS_ICONS['Not Started'];
@@ -341,42 +424,76 @@ const TaskCard = ({ task, user, staff, isManagement, onStatusUpdate, onEdit, onD
         </div>
 
         <div className="flex items-center gap-6 shrink-0">
-          <div className="flex items-center p-1.5 bg-accounting-bg/60 rounded-3xl -inner border border-white shadow-sm">
-            {['Not Started', 'In Progress', 'Completed'].map(s => (
-              <button
-                key={s}
-                onClick={() => onStatusUpdate(task, s)}
-                className={cn(
-                  'px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all duration-300',
-                  task.status === s
-                    ? "bg-accounting-text text-white shadow-xl shadow-accounting-text/20"
-                    : "text-secondary-text/20 hover:text-accounting-text"
-                )}
-              >
-                {s === 'Not Started' ? 'New' : s === 'In Progress' ? 'Doing' : 'Done'}
-              </button>
-            ))}
+          <div className="flex flex-col gap-3">
+             <div className="flex items-center p-1.5 bg-accounting-bg/60 rounded-3xl -inner border border-white shadow-sm">
+               {['Not Started', 'In Progress', 'Completed'].map(s => (
+                 <button
+                   key={s}
+                   onClick={() => onStatusUpdate(task, s)}
+                   className={cn(
+                     'px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all duration-300',
+                     task.status === s
+                       ? "bg-accounting-text text-white shadow-xl shadow-accounting-text/20"
+                       : "text-secondary-text/20 hover:text-accounting-text"
+                   )}
+                 >
+                   {s === 'Not Started' ? 'New' : s === 'In Progress' ? 'Doing' : 'Done'}
+                 </button>
+               ))}
+             </div>
+             
+             {task.status === 'Completed' && task.reviewStatus !== 'Approved' && !isManagement && (
+                <div className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-200">
+                   <Clock size={12} strokeWidth={3} /> Awaiting Audit
+                </div>
+             )}
           </div>
 
           {(isManagement || (user?.email === staff?.find(s => s.id === task.assignedTo)?.email)) && (
             <div className="flex items-center gap-2 pl-4 border-l border-accounting-bg">
               <Button variant="ghost" size="sm" icon={Edit2} onClick={onEdit} className="w-10 h-10 p-0 text-secondary-text bg-white shadow-sm border border-accounting-text/5 hover:text-accounting-text" />
               {isManagement && (
-                <Button variant="ghost" size="sm" icon={Trash2} onClick={onDelete} className="w-10 h-10 p-0 text-red-300 hover:text-red-500 bg-white shadow-sm border border-accounting-text/5" />
+                <Button variant="ghost" size="sm" icon={Trash2} onClick={onDelete} className="w-10 h-10 p-0 text-rose-300 hover:text-rose-500 bg-white shadow-sm border border-accounting-text/5" />
               )}
             </div>
           )}
         </div>
       </div>
 
-      {task.description && (
-        <div className="mt-8 pt-8 border-t border-accounting-bg/50">
-          <div className="flex gap-4">
-            <Info size={16} strokeWidth={3} className="text-secondary-text/30 mt-0.5" />
-            <p className="text-[11px] text-secondary-text/60 italic leading-relaxed max-w-3xl">
-              {task.description}
-            </p>
+      {(task.description || task.fileUrl || task.reviewNotes) && (
+        <div className="mt-8 pt-8 border-t border-accounting-bg/50 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {task.description && (
+              <div className="flex gap-4">
+                <Info size={16} strokeWidth={3} className="text-secondary-text/30 mt-0.5" />
+                <p className="text-[11px] text-secondary-text/60 italic leading-relaxed">
+                  {task.description}
+                </p>
+              </div>
+            )}
+            
+            {task.fileUrl && (
+               <div className="flex items-center gap-4 p-4 bg-accounting-bg/40 rounded-2xl border border-white -inner">
+                  <Link2 size={16} strokeWidth={3} className="text-indigo-600" />
+                  <div className="flex-1 min-w-0">
+                     <p className="text-[9px] font-black text-secondary-text/40 uppercase tracking-widest leading-none">Task Asset / Submission</p>
+                     <a href={task.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-black text-indigo-600 hover:underline truncate block mt-1">
+                        {task.fileUrl}
+                     </a>
+                  </div>
+               </div>
+            )}
           </div>
+
+          {task.reviewNotes && (
+             <div className="flex gap-4 p-5 bg-rose-50 rounded-2xl border border-rose-100 shadow-sm">
+                <MessageSquareQuote size={16} strokeWidth={3} className="text-rose-500 shrink-0" />
+                <div>
+                   <p className="text-[9px] font-black text-rose-800 uppercase tracking-widest leading-none mb-1.5">Review Feedback Directive</p>
+                   <p className="text-[12px] text-rose-950/70 font-medium leading-relaxed italic">{task.reviewNotes}</p>
+                </div>
+             </div>
+          )}
         </div>
       )}
     </Card>

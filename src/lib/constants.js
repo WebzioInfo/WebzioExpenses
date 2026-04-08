@@ -7,7 +7,7 @@ export const ENTRY_TYPES = {
 };
 
 export const STAFF_ROLES = {
-  ADMIN: 'Admin',
+  FOUNDER: 'Founder',
   HR: 'HR',
   STAFF: 'Staff',
   FREELANCER: 'Freelancer',
@@ -65,3 +65,19 @@ export const RECURRING_FREQUENCIES = {
   WEEKLY: 'Weekly',
   MONTHLY: 'Monthly',
 };
+
+export const TASK_STATUS = {
+  NOT_STARTED: 'Not Started',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+  NEEDS_REVISION: 'Needs Revision',
+  APPROVED: 'Approved',
+};
+
+export const TASK_PRIORITY = {
+  URGENT: 'Urgent',
+  HIGH: 'High',
+  MEDIUM: 'Medium',
+  LOW: 'Low',
+};
+

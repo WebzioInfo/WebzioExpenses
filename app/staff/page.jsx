@@ -11,8 +11,18 @@ import Card from '@/src/components/ui/Card';
 import Input from '@/src/components/ui/Input';
 import { STAFF_ROLES } from '@/src/lib/constants';
 import { CardSkeleton } from '@/src/components/ui/Skeleton';
+import { useAuth } from '@/src/context/AuthContext';
 
-const BLANK = { name: '', email: '', role: 'Staff', note: '' };
+const BLANK = { name: '', email: '', role: 'Staff', professionalRole: 'None', note: '' };
+
+const PROFESSIONAL_ROLES = [
+  'Founder',
+  'Frontend Developer', 
+  'Fullstack Developer', 
+  'Video Editor', 
+  'Business Development Executive', 
+  'Graphic Designer'
+];
 
 const ROLE_STYLES = {
   Admin: 'bg-purple-50 text-purple-700 border-purple-200',
@@ -27,7 +37,7 @@ const ROLE_AVATAR = {
 };
 
 export default function StaffPage() {
-  const { user, isAdmin, isManagement } = useAuth();
+  const { user, isFounder, isManagement } = useAuth();
   const { staff = [], entries = [], tasks = [], addStaff, updateStaff, deleteStaff, loading } = useApp();
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -50,10 +60,20 @@ export default function StaffPage() {
 
   const getStaffStats = (personId) => {
     const tx = entries.filter(t => String(t.personId) === String(personId));
+    const personTasks = tasks.filter(t => t.assignedTo === personId || t.assignedTo === String(personId));
+    
     const salary = tx.filter(t => t.type === 'Salary').reduce((s, t) => s + parseFloat(t.amount || 0), 0);
     const expense = tx.filter(t => t.type === 'Money Out').reduce((s, t) => s + parseFloat(t.amount || 0), 0);
     const added = tx.filter(t => t.type === 'Added Money').reduce((s, t) => s + parseFloat(t.amount || 0), 0);
-    return { salary, expense, added, count: tx.length };
+    
+    const totalTasks = personTasks.length;
+    const completedTasks = personTasks.filter(t => t.status === 'Completed' || t.status === 'Approved').length;
+    const delayedTasks = personTasks.filter(t => t.status !== 'Completed' && t.status !== 'Approved' && t.dueDate && new Date(t.dueDate) < new Date()).length;
+    
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const delayRate = totalTasks > 0 ? Math.round((delayedTasks / totalTasks) * 100) : 0;
+
+    return { salary, expense, added, count: tx.length, totalTasks, completionRate, delayRate };
   };
 
   if (loading) return (
@@ -131,18 +151,35 @@ export default function StaffPage() {
 
                 {/* Stats Row */}
                 <div className="grid grid-cols-1 gap-2">
-                  {[
-                    { label: 'Settled Payouts', value: stats.salary, icon: Briefcase, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'System Inflow', value: stats.added, icon: Coins, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Personal Expenses', value: stats.expense, icon: TrendingDown, color: 'text-red-500', bg: 'bg-red-50' },
-                  ].map(s => (
-                    <div key={s.label} className="flex items-center justify-between p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
-                      <div className="flex items-center gap-2 text-[8px] font-black text-secondary-text uppercase tracking-widest opacity-60">
-                        <s.icon size={10} strokeWidth={3} /> {s.label}
-                      </div>
-                      <p className={cn('font-black text-xs tracking-tight', s.color)}>{formatCurrency(s.value)}</p>
+                  <div className="flex items-center justify-between p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
+                    <div className="flex-1 space-y-1">
+                       <p className="text-[7px] font-black text-secondary-text/30 uppercase tracking-widest">Audited Completion</p>
+                       <div className="flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-accounting-bg rounded-full overflow-hidden">
+                             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${stats.completionRate}%` }} />
+                          </div>
+                          <p className="text-[10px] font-black text-emerald-600">{stats.completionRate}%</p>
+                       </div>
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
+                       <p className="text-[7px] font-black text-secondary-text/30 uppercase tracking-widest leading-none mb-1">Delay Rate</p>
+                       <p className={cn("text-xs font-black tracking-tight", stats.delayRate > 20 ? "text-rose-500" : "text-accounting-text")}>{stats.delayRate}%</p>
+                    </div>
+                    <div className="p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
+                       <p className="text-[7px] font-black text-secondary-text/30 uppercase tracking-widest leading-none mb-1">Strategic Overload</p>
+                       <p className="text-xs font-black text-accounting-text tracking-tight">{stats.totalTasks} Tasks</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
+                    <div className="flex items-center gap-2 text-[8px] font-black text-secondary-text uppercase tracking-widest opacity-60">
+                      <Briefcase size={10} strokeWidth={3} /> Settled Payouts
+                    </div>
+                    <p className="font-black text-xs text-amber-600 tracking-tight">{formatCurrency(stats.salary)}</p>
+                  </div>
                 </div>
 
                 {person.note && (
@@ -154,10 +191,10 @@ export default function StaffPage() {
                 {/* View Details CTA */}
                 <div className="flex items-center justify-between pt-4 border-t border-accounting-text/5">
                   <div className="flex items-center gap-2">
-                     <span className="w-1.5 h-1.5 rounded-full bg-accounting-text/10" />
-                     <span className="text-[8px] font-black text-secondary-text/40 uppercase tracking-widest">
-                        {stats.count} Recorded Events
-                     </span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-accounting-text/10" />
+                    <span className="text-[8px] font-black text-secondary-text/40 uppercase tracking-widest">
+                      {stats.count} Recorded Events
+                    </span>
                   </div>
                   <span className="flex items-center gap-1.5 text-[8px] font-black text-secondary-text group-hover:text-accounting-text uppercase tracking-widest transition-all">
                     Access Ledger <ChevronRight size={10} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
@@ -188,16 +225,37 @@ export default function StaffPage() {
           />
           <div className="space-y-4">
             <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Functional Protocol Role</label>
-            <div className="grid grid-cols-3 gap-3">
-              {['Admin', 'HR', 'Staff', 'Freelancer'].map(r => (
+            <div className="grid grid-cols-2 gap-3">
+              {['Founder', 'HR', 'Staff', 'Freelancer'].map(r => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, role: r }))}
                   className={cn(
                     "h-12 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border -inner",
-                    form.role === r 
-                      ? "bg-accounting-text text-white border-transparent shadow-lg shadow-accounting-text/10" 
+                    form.role === r
+                      ? "bg-accounting-text text-white border-transparent shadow-lg shadow-accounting-text/10"
+                      : "bg-accounting-bg/40 text-secondary-text/40 border-white hover:border-accounting-text/10"
+                  )}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Professional Core Specialist</label>
+            <div className="grid grid-cols-2 gap-3">
+              {PROFESSIONAL_ROLES.map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, professionalRole: r }))}
+                  className={cn(
+                    "h-12 rounded-2xl text-[8px] font-black uppercase tracking-widest transition-all border -inner px-2",
+                    form.professionalRole === r
+                      ? "bg-indigo-600 text-white border-transparent shadow-lg shadow-indigo-200"
                       : "bg-accounting-bg/40 text-secondary-text/40 border-white hover:border-accounting-text/10"
                   )}
                 >

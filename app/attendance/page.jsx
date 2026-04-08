@@ -32,7 +32,7 @@ const STATUS_CONFIG = {
 };
 
 export default function AttendancePage() {
-  const { user, isAdmin, isManagement } = useAuth();
+  const { user, isFounder, isManagement } = useAuth();
   const { staff = [] } = useApp();
   
   const [date, setDate] = useState(new Date());
@@ -83,7 +83,13 @@ export default function AttendancePage() {
     }
   };
 
-  const filteredStaff = isManagement ? staff : staff.filter(s => s.id === user?.staffId);
+  const [founderView, setFounderView] = useState('Company'); // 'Company' or 'Personal'
+
+  const filteredStaff = useMemo(() => {
+    if (!isManagement) return staff.filter(s => s.email === user?.email);
+    if (isFounder && founderView === 'Personal') return staff.filter(s => s.email === user?.email);
+    return staff;
+  }, [staff, isManagement, isFounder, founderView, user]);
 
   const stats = useMemo(() => {
     if (!attendance.length) return { present: 0, absent: 0, leave: 0 };
@@ -107,31 +113,48 @@ export default function AttendancePage() {
         <div>
           <h1 className="text-4xl font-black text-accounting-text tracking-tighter leading-none">Attendance</h1>
           <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest mt-2">
-            {isManagement ? 'Systemic personnel presence management' : 'Personal activity registry'}
+            {isManagement ? 'Systemic personnel presence management' : 'Personal activity registry (Verified by HR/Founder)'}
           </p>
         </div>
         
         <div className="flex items-center gap-4">
           {/* View Toggle */}
           <div className="flex p-1 bg-accounting-bg/40 rounded-2xl -inner border border-white/50">
-            <button 
-              onClick={() => setViewMode('daily')}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                viewMode === 'daily' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
-              )}
-            >
-              <ListFilter size={14} strokeWidth={3} /> Daily
-            </button>
-            <button 
-              onClick={() => setViewMode('matrix')}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                viewMode === 'matrix' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
-              )}
-            >
-              <LayoutGrid size={14} strokeWidth={3} /> Matrix
-            </button>
+            {isFounder ? (
+                ['Company', 'Personal'].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setFounderView(m)}
+                    className={cn(
+                      "px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                      founderView === m ? "bg-accounting-text text-white shadow-lg" : "text-secondary-text/60 hover:text-accounting-text"
+                    )}
+                  >
+                    {m} Portal
+                  </button>
+                ))
+            ) : (
+              <>
+                <button 
+                  onClick={() => setViewMode('daily')}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'daily' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
+                  )}
+                >
+                  <ListFilter size={14} strokeWidth={3} /> Daily
+                </button>
+                <button 
+                  onClick={() => setViewMode('matrix')}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                    viewMode === 'matrix' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
+                  )}
+                >
+                  <LayoutGrid size={14} strokeWidth={3} /> Matrix
+                </button>
+              </>
+            )}
           </div>
 
           {/* Date Selector */}

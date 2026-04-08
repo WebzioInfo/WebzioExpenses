@@ -64,7 +64,8 @@ export const AuthProvider = ({ children }) => {
   };
 
     const hasPermission = (moduleName) => {
-      if (user?.role === 'admin') return true;
+      const role = user?.role?.toLowerCase();
+      if (role === 'founder' || role === 'admin') return true;
       if (!user?.permissions) return false;
       return user.permissions.includes(moduleName);
     };
@@ -74,9 +75,10 @@ export const AuthProvider = ({ children }) => {
         value={{
           user,
           loading,
-          isAdmin: user?.role === 'Admin',
-          isHR: user?.role === 'HR',
-          isManagement: user?.role === 'Admin' || user?.role === 'HR',
+          isFounder: user?.role?.toLowerCase() === 'founder' || user?.role?.toLowerCase() === 'admin',
+          isAdmin: user?.role?.toLowerCase() === 'founder' || user?.role?.toLowerCase() === 'admin',
+          isHR: user?.role?.toLowerCase() === 'hr',
+          isManagement: ['founder', 'admin', 'hr'].includes(user?.role?.toLowerCase()),
           permissions: user?.permissions || [],
           hasPermission,
           login,

@@ -17,26 +17,27 @@ import { StaffDashboard } from '@/src/components/Dashboard/StaffDashboard';
 
 export default function Dashboard() {
   const { entries = [], projects = [], staff = [], tasks = [], loading } = useApp();
-  const { user, isAdmin } = useAuth();
+  const { user, isManagement, isFounder } = useAuth();
 
   if (loading) return (
     <div className="space-y-10 py-6">
-      <div className="h-10 w-64 bg-[#2D151F]/5 animate-pulse rounded-xl mb-8" />
-      <div className="h-64 bg-[#2D151F]/5 animate-pulse rounded-3xl mb-8 -inner" />
+      <div className="h-10 w-64 bg-accounting-text/5 animate-pulse rounded-xl mb-8" />
+      <div className="h-64 bg-accounting-text/5 animate-pulse rounded-3xl mb-8 -inner" />
       <div className="grid grid-cols-5 gap-4">
-        {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-32 bg-[#2D151F]/5 animate-pulse rounded-2xl -inner" />)}
+        {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-32 bg-accounting-text/5 animate-pulse rounded-2xl -inner" />)}
       </div>
     </div>
   );
 
-  // If Admin -> Show Full Admin Dashboard
-  if (isAdmin) {
+  // If Management (Founder or HR) -> Show Adaptive Management Dashboard
+  if (isManagement) {
     return <AdminDashboard
       user={user}
       entries={entries}
       projects={projects}
       staff={staff}
       tasks={tasks}
+      isFounder={isFounder}
     />;
   }
 

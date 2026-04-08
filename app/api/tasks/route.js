@@ -15,7 +15,9 @@ export async function GET(request) {
     let staffId = searchParams.get('staffId');
 
     // RBAC: Staff/Freelancers only see their own tasks
-    if (!session.isAdmin) {
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+    if (!isManagement) {
       staffId = session.staffId;
       if (!staffId) {
         return NextResponse.json([]); // No linked staff record -> no tasks
@@ -61,7 +63,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    let { title, description, assignedTo, projectId, status, priority, startDate, dueDate, notes } = body;
+    let { title, description, assignedTo, projectId, status, priority, startDate, dueDate, fileUrl, notes } = body;
     const id = 'task_' + Date.now();
 
     if (!session.isAdmin) {
@@ -72,9 +74,9 @@ export async function POST(request) {
     const finalNotes = Array.isArray(notes) ? JSON.stringify(notes) : (notes || '[]');
 
     await pool.query(
-      `INSERT INTO tasks (id, title, description, assignedTo, assignedBy, projectId, status, priority, startDate, dueDate, notes, isActive) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)`,
-      [id, title, description || '', assignedTo || null, session.user.id, projectId || null, finalStatus, priority || 'Medium', startDate || null, dueDate || null, finalNotes]
+      `INSERT INTO tasks (id, title, description, assignedTo, assignedBy, projectId, status, priority, startDate, dueDate, fileUrl, reviewStatus, notes, isActive) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, TRUE)`,
+      [id, title, description || '', assignedTo || null, session.user.id, projectId || null, finalStatus, priority || 'Medium', startDate || null, dueDate || null, fileUrl || null, finalNotes]
     );
 
     await logActivity(session.user.id, 'Created Task', 'Tasks', { taskId: id, title });
@@ -99,7 +101,10 @@ export async function PUT(request) {
     const [existing] = await pool.query('SELECT assignedTo, title FROM tasks WHERE id = ?', [id]);
     if (existing.length === 0) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
 
-    if (!session.isAdmin && existing[0].assignedTo !== session.staffId) {
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!isManagement && existing[0].assignedTo !== session.staffId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -112,13 +117,17 @@ export async function PUT(request) {
 
     const finalNotes = Array.isArray(notes) ? JSON.stringify(notes) : (notes || '[]');
     
-    const query = session.isAdmin 
-      ? 'UPDATE tasks SET title=?, description=?, assignedTo=?, status=?, priority=?, startDate=?, dueDate=?, completedDate=?, notes=? WHERE id=?'
-      : 'UPDATE tasks SET status=?, completedDate=?, notes=? WHERE id=?';
+    let query, params;
     
-    const params = session.isAdmin 
-      ? [title, body.description || '', body.assignedTo || null, status, body.priority, body.startDate || null, body.dueDate || null, finalCompletedDate, finalNotes, id]
-      : [status, finalCompletedDate, finalNotes, id];
+    if (isManagement) {
+      // Management can update everything + review fields
+      query = 'UPDATE tasks SET title=?, description=?, assignedTo=?, status=?, priority=?, startDate=?, dueDate=?, completedDate=?, fileUrl=?, reviewStatus=?, reviewNotes=?, notes=? WHERE id=?';
+      params = [title, body.description || '', body.assignedTo || null, status, body.priority, body.startDate || null, body.dueDate || null, finalCompletedDate, body.fileUrl || null, body.reviewStatus || 'Pending', body.reviewNotes || '', finalNotes, id];
+    } else {
+      // Staff can only update status and fileUrl
+      query = 'UPDATE tasks SET status=?, completedDate=?, fileUrl=?, notes=? WHERE id=?';
+      params = [status, finalCompletedDate, body.fileUrl || null, finalNotes, id];
+    }
 
     await pool.query(query, params);
     
