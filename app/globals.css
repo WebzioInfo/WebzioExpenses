@@ -2,30 +2,26 @@
 @import "tailwindcss";
 
 @theme {
-  /* Webzio Unified Professional Palette */
+  /* Webzio Standard Identity Palette */
   --color-accounting-bg: #F4F3DC;
   --color-accounting-text: #2D151F;
   --color-secondary-text: #6B5E66;
   --color-clay-plum: #3a1c28;
-  --color-clay-cream: #FFFFFF;
+  --color-white: #FFFFFF;
 
   /* Consistent Radii */
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
-  --radius-4xl: 3rem;
+  --radius-4xl: 3.5rem;
 
-  /* Professional Claymorphic Shadows */
-  /* Outer depth (soft) */
-  ---outer: 12px 12px 24px rgba(45, 21, 31, 0.08), -6px -6px 12px rgba(255, 255, 255, 0.6);
-  /* Inner inflated glow */
+  /* Premium Claymorphic Design Tokens */
+  ---outer: 20px 20px 40px rgba(45, 21, 31, 0.08), -10px -10px 20px rgba(255, 255, 255, 0.7);
   ---inner: inset 4px 4px 8px rgba(45, 21, 31, 0.04), inset -4px -4px 8px rgba(255, 255, 255, 0.4);
-  /* Button specific depth */
-  ---btn: 6px 6px 12px rgba(45, 21, 31, 0.1), -3px -3px 6px rgba(255, 255, 255, 0.5);
-  /* Pressed state */
-  ---pressed: inset 6px 6px 12px rgba(45, 21, 31, 0.08), inset -3px -3px 6px rgba(255, 255, 255, 0.4);
+  ---btn: 8px 8px 16px rgba(45, 21, 31, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.6);
+  ---pressed: inset 8px 8px 16px rgba(45, 21, 31, 0.08), inset -4px -4px 8px rgba(255, 255, 255, 0.4);
 
-  /* Modern Classic Typography */
+  /* Modern Professional Typography */
   --font-display: "Outfit", sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
   --font-montserrat: "Montserrat", sans-serif;

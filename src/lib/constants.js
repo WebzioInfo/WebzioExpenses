@@ -70,8 +70,15 @@ export const TASK_STATUS = {
   NOT_STARTED: 'Not Started',
   IN_PROGRESS: 'In Progress',
   COMPLETED: 'Completed',
+  DELAYED: 'Delayed',
   NEEDS_REVISION: 'Needs Revision',
   APPROVED: 'Approved',
+};
+
+export const REVIEW_STATUS = {
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  REVISION: 'Needs Revision',
 };
 
 export const TASK_PRIORITY = {

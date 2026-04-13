@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, Bell, LogOut, ChevronDown, ShieldCheck, User } from 'lucide-react';
+import { Menu, Bell, LogOut, ChevronDown, ShieldCheck, User, Building2 } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { useTransactions } from '@/src/context/TransactionContext';
 import { cn } from '@/src/lib/utils';
@@ -9,17 +9,17 @@ import Link from 'next/link';
 import Button from '../ui/Button';
 
 export const Navbar = ({ onOpenSidebar }) => {
-  const { user, logout, isAdmin } = useAuth();
-  const { transactions } = useTransactions();
+  const { user, logout, isSuperAdmin, isManagement, viewMode, toggleViewMode } = useAuth();
+  const { entries = [] } = useTransactions();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const pendingCount = transactions.filter(e => e.status === 'Pending').length;
+  const pendingCount = (entries || []).filter(e => e.status === 'Pending').length;
 
   return (
     <header className="h-20 flex items-center justify-between px-6 sm:px-10 bg-transparent sticky top-0 z-30">
       <div className="flex-1 flex items-center justify-between">
-        {/* Left: Mobile burger */}
-        <div className="flex items-center gap-4">
+        {/* Left: Mobile burger & Breadcrumb/Logo */}
+        <div className="flex items-center gap-6">
           <Button
             variant="ghost"
             onClick={onOpenSidebar}
@@ -29,6 +29,36 @@ export const Navbar = ({ onOpenSidebar }) => {
           <div className="hidden lg:block">
             <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-[0.4em]">Webzio International</p>
           </div>
+
+          {/* Premium Mode Toggle - Only for Management */}
+          {isManagement && (
+            <div className="hidden md:flex items-center bg-white/40 p-1 rounded-2xl -inner border border-white/50 backdrop-blur-md">
+              <button
+                onClick={() => viewMode !== 'company' && toggleViewMode()}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300",
+                  viewMode === 'company' 
+                    ? "bg-accounting-text text-accounting-bg shadow-lg -outer scale-[1.02]" 
+                    : "text-accounting-text/50 hover:text-accounting-text"
+                )}
+              >
+                <Building2 size={12} strokeWidth={2.5} />
+                <span className="text-[9px] font-black uppercase tracking-wider">Company</span>
+              </button>
+              <button
+                onClick={() => viewMode !== 'personal' && toggleViewMode()}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300",
+                  viewMode === 'personal' 
+                    ? "bg-accounting-text text-accounting-bg shadow-lg -outer scale-[1.02]" 
+                    : "text-accounting-text/50 hover:text-accounting-text"
+                )}
+              >
+                <User size={12} strokeWidth={2.5} />
+                <span className="text-[9px] font-black uppercase tracking-wider">Personal</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right */}
@@ -67,7 +97,7 @@ export const Navbar = ({ onOpenSidebar }) => {
                 <div className="flex flex-col leading-none">
                   <p className="text-[10px] font-black text-accounting-text">{user?.name}</p>
                   <p className="text-[8px] font-black text-accounting-text/60 uppercase tracking-widest flex items-center gap-1 mt-0.5">
-                    {isAdmin ? (
+                    {isSuperAdmin ? (
                       <ShieldCheck size={8} strokeWidth={2.5} className="text-emerald-500" />
                     ) : (
                       <User size={8} strokeWidth={2.5} />
@@ -100,7 +130,7 @@ export const Navbar = ({ onOpenSidebar }) => {
                   </div>
                 </Link>
 
-                {isAdmin && (
+                {isSuperAdmin && (
                   <Link href="/users" onClick={() => setMenuOpen(false)}>
                     <div className="flex items-center gap-3 px-4 py-3 hover:bg-accounting-bg/40 text-accounting-text/60 hover:text-accounting-text transition-colors cursor-pointer">
                       <ShieldCheck size={14} strokeWidth={2.5} />

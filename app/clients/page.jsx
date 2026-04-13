@@ -67,7 +67,7 @@ export default function ClientsPage() {
         <div>
           <h1 className="text-3xl font-black text-accounting-text tracking-tighter leading-none">Clients</h1>
           <p className="text-[9px] font-black text-accounting-text/60 uppercase tracking-[0.3em] mt-1">
-            {filteredClients.length} professional partnerships
+            {filteredClients.length} Partnerships
           </p>
         </div>
         <Button
@@ -164,7 +164,7 @@ export default function ClientsPage() {
       </div>
 
       {/* Add Client Modal */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title="New Partnership" subtitle="Add a business client">
+      <Modal isOpen={modal} onClose={() => setModal(false)} title="New Client" subtitle="Add a business partner">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="field-label">Contact Person <span className="text-red-400">*</span></label>

@@ -55,17 +55,17 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-1">
         <div>
-          <h1 className="text-4xl font-black text-accounting-text tracking-tighter leading-none">Strategic Projects</h1>
-          <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest mt-2">{projects.length} managed operational initiatives</p>
+          <h1 className="text-4xl font-black text-accounting-text tracking-tighter leading-none">Projects</h1>
+          <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest mt-2">{projects.length} Total Projects</p>
         </div>
-        <Button onClick={openAdd} icon={Plus}>Add Initiative</Button>
+        <Button onClick={openAdd} icon={Plus}>Add Project</Button>
       </div>
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
         <Card className="p-20 flex flex-col items-center text-center space-y-4 border-2 border-dashed border-accounting-text/5">
-          <p className="text-lg font-black text-accounting-text uppercase tracking-tighter leading-none">No active initiatives found</p>
-          <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest max-w-[240px]">Initialize the system by adding your first strategic project to track fiscal performance.</p>
+          <p className="text-lg font-black text-accounting-text uppercase tracking-tighter leading-none">No projects found</p>
+          <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest max-w-[240px]">Add your first project to track income and expenses.</p>
           <Button onClick={openAdd} icon={Plus} className="mt-4 px-10">Add Project</Button>
         </Card>
       ) : (
@@ -95,13 +95,13 @@ export default function ProjectsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-emerald-50 rounded-2xl -inner border border-white space-y-2">
                     <div className="flex items-center gap-1.5 text-[8px] font-black text-emerald-600/80 uppercase tracking-widest">
-                      <TrendingUp size={10} strokeWidth={3} /> Inflow
+                      <TrendingUp size={10} strokeWidth={3} /> Income
                     </div>
                     <p className="text-lg font-black text-emerald-600 tracking-tight">{formatCurrency(stats.income)}</p>
                   </div>
                   <div className="p-4 bg-red-50 rounded-2xl -inner border border-white space-y-2">
                     <div className="flex items-center gap-1.5 text-[8px] font-black text-red-500/80 uppercase tracking-widest">
-                      <TrendingDown size={10} strokeWidth={3} /> Outflow
+                      <TrendingDown size={10} strokeWidth={3} /> Expenses
                     </div>
                     <p className="text-lg font-black text-red-500 tracking-tight">{formatCurrency(stats.expense)}</p>
                   </div>
@@ -117,7 +117,7 @@ export default function ProjectsPage() {
                   </div>
                   <div className="flex gap-2 p-1 bg-accounting-bg/40 rounded-2xl -inner border border-white opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300">
                     <Button variant="ghost" size="sm" icon={Edit2} iconSize={12} onClick={() => openEdit(project)} className="w-9 h-9 p-0 text-secondary-text hover:text-accounting-text" />
-                    <Button variant="ghost" size="sm" icon={Trash2} iconSize={12} onClick={() => { if (confirm(`Archive "${project.name}"?`)) deleteProject(project.id); }} className="w-9 h-9 p-0 text-red-400 hover:text-red-600" />
+                    <Button variant="ghost" size="sm" icon={Trash2} iconSize={12} onClick={() => { if (confirm(`Delete project "${project.name}"?`)) deleteProject(project.id); }} className="w-9 h-9 p-0 text-red-400 hover:text-red-600" />
                   </div>
                 </div>
               </Card>
@@ -127,24 +127,24 @@ export default function ProjectsPage() {
       )}
 
       {/* ─── ADD / EDIT MODAL ─── */}
-      <Modal isOpen={modal} onClose={closeModal} title={editId ? 'Edit Initiative' : 'Provision Project'} subtitle="Strategic entity identification">
+      <Modal isOpen={modal} onClose={closeModal} title={editId ? 'Edit Project' : 'Add Project'} subtitle="Project identity and details">
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input 
-            label="Initiative Identity Name" 
+            label="Project Name" 
             required 
-            placeholder="e.g. Website Evolution 2.0" 
+            placeholder="e.g. Website Development" 
             value={form.name} 
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))} 
           />
           <Input 
-            label="Stakeholder / Client Name" 
-            placeholder="e.g. Acme Strategic Partners" 
+            label="Client Name" 
+            placeholder="e.g. Acme Corp" 
             value={form.clientName} 
             onChange={e => setForm(f => ({ ...f, clientName: e.target.value }))} 
           />
           
           <div className="space-y-4">
-            <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Current Protocol Status</label>
+            <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Project Status</label>
             <div className="flex p-1.5 bg-accounting-bg/40 rounded-2xl border border-white -inner">
               {['Active', 'Completed'].map(s => (
                 <button
@@ -165,7 +165,7 @@ export default function ProjectsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Procedural Context</label>
+            <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Notes</label>
             <textarea 
               className="clay-input w-full min-h-[120px] resize-none text-[13px] leading-relaxed" 
               placeholder="Strategic notes regarding project objectives..." 
@@ -176,9 +176,9 @@ export default function ProjectsPage() {
 
           <div className="flex gap-4 pt-4 border-t border-accounting-bg">
             <Button type="submit" isLoading={saving} fullWidth className="h-14">
-              {editId ? 'Authorize Update' : 'Initialize Initiative'}
+              {editId ? 'Save Changes' : 'Create Project'}
             </Button>
-            <Button variant="secondary" type="button" onClick={closeModal} className="h-14 px-10">Abort</Button>
+            <Button variant="secondary" type="button" onClick={closeModal} className="h-14 px-10">Cancel</Button>
           </div>
         </form>
       </Modal>

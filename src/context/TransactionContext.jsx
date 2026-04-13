@@ -3,32 +3,32 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from './ToastContext';
 
-const TransactionContext = createContext();
+const EntryContext = createContext();
 
-export const TransactionProvider = ({ children }) => {
+export const EntryProvider = ({ children }) => {
   const { showToast } = useToast();
-  const [transactions, setTransactions] = useState([]);
+  const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTransactions = useCallback(async () => {
+  const fetchEntries = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/transactions');
       const data = await res.json();
-      setTransactions(Array.isArray(data) ? data : []);
+      setEntries(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to load transactions:', err);
-      showToast('Could not load entries data.', 'error');
+      console.error('Failed to load entries:', err);
+      showToast('Could not load financial entries.', 'error');
     } finally {
       setLoading(false);
     }
   }, [showToast]);
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    fetchEntries();
+  }, [fetchEntries]);
 
-  const addTransaction = async (data) => {
+  const addEntry = async (data) => {
     try {
       const res = await fetch('/api/transactions', {
         method: 'POST',
@@ -37,13 +37,13 @@ export const TransactionProvider = ({ children }) => {
       });
       if (!res.ok) throw new Error();
       showToast('Entry saved.', 'success');
-      await fetchTransactions();
+      await fetchEntries();
     } catch {
-      showToast('Could not save entry. Please try again.', 'error');
+      showToast('Could not save entry.', 'error');
     }
   };
 
-  const updateTransaction = async (id, data) => {
+  const updateEntry = async (id, data) => {
     try {
       const res = await fetch('/api/transactions', {
         method: 'PUT',
@@ -52,29 +52,29 @@ export const TransactionProvider = ({ children }) => {
       });
       if (!res.ok) throw new Error();
       showToast('Entry updated.', 'success');
-      await fetchTransactions();
+      await fetchEntries();
     } catch {
       showToast('Could not update entry.', 'error');
     }
   };
 
-  const deleteTransaction = async (id) => {
+  const deleteEntry = async (id) => {
     try {
       const res = await fetch(`/api/transactions?id=${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       showToast('Entry removed.', 'success');
-      await fetchTransactions();
+      await fetchEntries();
     } catch {
       showToast('Could not remove entry.', 'error');
     }
   };
 
-  const exportCSV = (list = transactions, name = 'transactions') => {
+  const exportCSV = (list = entries, name = 'entries') => {
     if (!list || list.length === 0) {
       showToast('No data to export.', 'error');
       return;
     }
-    const headers = ['Date', 'Title', 'Type', 'Account', 'Amount', 'Category', 'Person', 'Project', 'Status'];
+    const headers = ['Date', 'Title', 'Type', 'Account', 'Amount', 'Category', 'Staff', 'Project', 'Status'];
     const rows = list.map(e => [
       e.date,
       `"${(e.title || '').replace(/"/g, '""')}"`,
@@ -98,19 +98,27 @@ export const TransactionProvider = ({ children }) => {
   };
 
   return (
-    <TransactionContext.Provider value={{
-      transactions, loading,
-      addTransaction, updateTransaction, deleteTransaction,
-      refreshTransactions: fetchTransactions,
+    <EntryContext.Provider value={{
+      entries, 
+      transactions: entries, // Alias for backward compatibility
+      loading,
+      addEntry, 
+      updateEntry, 
+      deleteEntry,
+      refreshEntries: fetchEntries,
       exportCSV
     }}>
       {children}
-    </TransactionContext.Provider>
+    </EntryContext.Provider>
   );
 };
 
-export const useTransactions = () => {
-  const ctx = useContext(TransactionContext);
-  if (!ctx) throw new Error('useTransactions must be used inside TransactionProvider');
+export const useEntries = () => {
+  const ctx = useContext(EntryContext);
+  if (!ctx) throw new Error('useEntries must be used inside EntryProvider');
   return ctx;
 };
+
+// Aliases for backward compatibility during transition
+export const useTransactions = useEntries;
+export const TransactionProvider = EntryProvider;

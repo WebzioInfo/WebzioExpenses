@@ -4,11 +4,11 @@ import { DashboardHeader } from './Header';
 import { StatsHero } from './StatsHero';
 import { AccountBalances } from './AccountBalances';
 import { RecentTransactions } from './RecentTransactions';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Target, Users, LayoutGrid, CheckCircle } from 'lucide-react';
 import { formatCurrency, cn } from '@/src/lib/utils';
 import Card from '../ui/Card';
 
-export const AdminDashboard = ({ user, entries = [], projects = [], staff = [], tasks = [], isFounder }) => {
+export const AdminDashboard = ({ user, entries = [], projects = [], staff = [], tasks = [], isSuperAdmin }) => {
   const stats = useStats(entries);
 
   const crmStats = useMemo(() => {
@@ -31,51 +31,58 @@ export const AdminDashboard = ({ user, entries = [], projects = [], staff = [], 
 
   return (
     <div className="space-y-10 py-6">
-      {/* Header */}
       <DashboardHeader user={user} />
 
-      {/* Financial & CRM Overview - Adaptive Visibility */}
-      {isFounder ? (
+      {isSuperAdmin ? (
         <StatsHero stats={combinedStats} />
       ) : (
-        <Card className="p-8 border border-accounting-text/5 shadow-2xl">
-           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard label="Total Personnel" value={combinedStats.totalStaff} variant="accounting-text" />
-              <StatCard label="Live Objectives" value={combinedStats.totalTasks} variant="blue-600" />
-              <StatCard label="Operational Completion" value={combinedStats.completedTasks} variant="emerald-600" />
-              <StatCard label="Strategic Delays" value={combinedStats.delayedTasks} variant="rose-500" />
-           </div>
-        </Card>
-      )}
-
-      {/* Pending Net Benefit Alert - Founder Only */}
-      {isFounder && stats.pendingIn > 0 && (
-        <div className="flex items-center justify-between p-5 bg-accounting-bg border border-amber-200 rounded-2xl -inner">
-          <div className="flex items-center gap-3">
-            <AlertCircle size={20} className="text-amber-600 shrink-0" strokeWidth={2.5} />
-            <div>
-              <p className="font-black text-amber-800 text-sm">Pending Inflow</p>
-              <p className="text-[9px] font-black text-amber-600/60 uppercase tracking-widest">Payments due to the company</p>
-            </div>
-          </div>
-          <p className="text-xl font-black text-amber-700">{formatCurrency(stats.pendingIn)}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           <KPIBox label="Total Projects" value={combinedStats.totalProjects} icon={LayoutGrid} color="indigo" />
+           <KPIBox label="Total Staff" value={combinedStats.totalStaff} icon={Users} color="accounting-text" />
+           <KPIBox label="Active Tasks" value={combinedStats.totalTasks} icon={Target} color="blue" />
+           <KPIBox label="Completed Tasks" value={combinedStats.completedTasks} icon={CheckCircle} color="emerald" />
         </div>
       )}
 
-      {/* Account Balances - Founder Only */}
-      {isFounder && <AccountBalances accounts={stats.accountBalances} />}
+      {isSuperAdmin && stats.pendingIn > 0 && (
+        <div className="flex items-center justify-between p-6 bg-white rounded-3xl border border-amber-200 shadow-xl shadow-amber-900/5 -inner">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center -inner border border-white">
+               <AlertCircle size={24} className="text-amber-600" strokeWidth={3} />
+            </div>
+            <div>
+              <p className="font-black text-amber-950 text-base tracking-tight leading-none">Pending Income</p>
+              <p className="text-[10px] font-black text-amber-600/40 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
+                 Payment expected
+              </p>
+            </div>
+          </div>
+          <p className="text-3xl font-black text-amber-600 tracking-tighter">{formatCurrency(stats.pendingIn)}</p>
+        </div>
+      )}
 
-      {/* Recent Transactions */}
-      <RecentTransactions transactions={recentEntries} />
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+        <div className="xl:col-span-8 space-y-10">
+           <RecentTransactions transactions={recentEntries} />
+        </div>
+        <div className="xl:col-span-4 space-y-10">
+           {isSuperAdmin && <AccountBalances accounts={stats.accountBalances} />}
+        </div>
+      </div>
     </div>
   );
 };
 
-const StatCard = ({ label, value, variant }) => {
+function KPIBox({ label, value, icon: Icon, color }) {
   return (
-    <div className="text-center p-4 space-y-1">
-      <p className="text-[8px] font-black text-secondary-text/40 uppercase tracking-widest leading-none">{label}</p>
-      <p className={cn('text-2xl font-black tracking-tighter leading-none', `text-${variant}`)}>{value}</p>
-    </div>
+    <Card className="p-7 space-y-4 hover:shadow-2xl transition-all border border-transparent hover:border-accounting-text/5">
+       <div className="flex items-center justify-between">
+          <p className="text-[10px] font-black uppercase tracking-widest text-secondary-text/30">{label}</p>
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center -inner border border-white shadow-sm", `bg-${color === 'accounting-text' ? 'accounting-bg' : color + '-50'}`)}>
+            <Icon size={18} className={cn("stroke-[3px]", `text-${color}-600`)} />
+          </div>
+       </div>
+       <p className="text-4xl font-black tracking-tighter text-accounting-text">{value}</p>
+    </Card>
   );
-};
+}

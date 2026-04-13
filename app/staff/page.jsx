@@ -1,53 +1,73 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '@/src/context/ExpenseContext';
 import { formatCurrency, cn } from '@/src/lib/utils';
 import Modal from '@/src/components/ui/Modal';
 import { StaffDetailPanel } from '@/src/components/Staff/StaffDetailPanel';
-import { Plus, Edit2, Trash2, TrendingDown, Coins, Briefcase, ChevronRight, Users } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Briefcase, ChevronRight, Target, Award, ShieldAlert, Zap, ShieldCheck } from 'lucide-react';
 import Button from '@/src/components/ui/Button';
 import Card from '@/src/components/ui/Card';
 import Input from '@/src/components/ui/Input';
-import { STAFF_ROLES } from '@/src/lib/constants';
-import { CardSkeleton } from '@/src/components/ui/Skeleton';
 import { useAuth } from '@/src/context/AuthContext';
 
-const BLANK = { name: '', email: '', role: 'Staff', professionalRole: 'None', note: '' };
-
-const PROFESSIONAL_ROLES = [
-  'Founder',
-  'Frontend Developer', 
-  'Fullstack Developer', 
-  'Video Editor', 
-  'Business Development Executive', 
-  'Graphic Designer'
-];
-
-const ROLE_STYLES = {
-  Admin: 'bg-purple-50 text-purple-700 border-purple-200',
-  Staff: 'bg-blue-50 text-blue-700 border-blue-200',
-  Freelancer: 'bg-amber-50 text-amber-700 border-amber-200',
+const ROLE_THEMES = {
+  Founder: 'bg-indigo-600 text-white border-transparent',
+  HR: 'bg-emerald-600 text-white border-transparent',
+  Staff: 'bg-accounting-text text-white border-transparent',
+  Freelancer: 'bg-amber-500 text-white border-transparent',
 };
 
-const ROLE_AVATAR = {
-  Admin: 'bg-purple-600',
-  Staff: 'bg-blue-600',
-  Freelancer: 'bg-amber-600',
-};
+const BLANK_STAFF = { name: '', email: '', role: 'Staff', note: '', permissions: ['Dashboard', 'Work'] };
+const ALL_MODULES = ['Dashboard', 'Work', 'Team', 'Finance', 'CRM', 'Attendance'];
 
-export default function StaffPage() {
-  const { user, isFounder, isManagement } = useAuth();
+export default function TeamPage() {
+  const { isManagement } = useAuth();
   const { staff = [], entries = [], tasks = [], addStaff, updateStaff, deleteStaff, loading } = useApp();
+  
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState(BLANK);
+  const [form, setForm] = useState(BLANK_STAFF);
   const [saving, setSaving] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
 
-  const openAdd = () => { setEditId(null); setForm(BLANK); setModal(true); };
-  const openEdit = (p, e) => { e.stopPropagation(); setEditId(p.id); setForm({ name: p.name, email: p.email || '', role: p.role || 'Staff', note: p.note || '' }); setModal(true); };
-  const closeModal = () => { setModal(false); setEditId(null); };
+  const staffProfiles = useMemo(() => {
+    return staff.map(person => {
+      const personId = String(person.id);
+      const personEntries = entries.filter(t => String(t.personId) === personId);
+      const personTasks = tasks.filter(t => String(t.assignedTo) === personId);
+      
+      const totalTasks = personTasks.length;
+      const completed = personTasks.filter(t => t.status === 'Completed' || t.status === 'Approved').length;
+      const rejected = personTasks.filter(t => t.status === 'Needs Revision').length;
+      const delayed = personTasks.filter(t => t.status === 'Delayed').length;
+      
+      return {
+        ...person,
+        metrics: {
+          completionRate: totalTasks ? Math.round((completed / totalTasks) * 100) : 0,
+          delayRate: totalTasks ? Math.round((delayed / totalTasks) * 100) : 0,
+          qualityScore: totalTasks ? Math.round(((completed - rejected) / totalTasks) * 100) : 0,
+          totalTasks,
+          salaryTotal: personEntries.filter(t => t.type === 'Salary').reduce((s, t) => s + parseFloat(t.amount || 0), 0)
+        }
+      };
+    });
+  }, [staff, entries, tasks]);
+
+  const openAdd = () => { setEditId(null); setForm(BLANK_STAFF); setModal(true); };
+  const openEdit = (p, e) => { 
+    e.stopPropagation(); 
+    setEditId(p.id); 
+    setForm({ 
+      name: p.name, 
+      email: p.email || '', 
+      role: p.role || 'Staff', 
+      note: p.note || '',
+      permissions: Array.isArray(p.permissions) ? p.permissions : ['Dashboard', 'Work']
+    }); 
+    setModal(true); 
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,237 +75,187 @@ export default function StaffPage() {
     if (editId) await updateStaff(editId, form);
     else await addStaff(form);
     setSaving(false);
-    closeModal();
+    setModal(false);
   };
 
-  const getStaffStats = (personId) => {
-    const tx = entries.filter(t => String(t.personId) === String(personId));
-    const personTasks = tasks.filter(t => t.assignedTo === personId || t.assignedTo === String(personId));
-    
-    const salary = tx.filter(t => t.type === 'Salary').reduce((s, t) => s + parseFloat(t.amount || 0), 0);
-    const expense = tx.filter(t => t.type === 'Money Out').reduce((s, t) => s + parseFloat(t.amount || 0), 0);
-    const added = tx.filter(t => t.type === 'Added Money').reduce((s, t) => s + parseFloat(t.amount || 0), 0);
-    
-    const totalTasks = personTasks.length;
-    const completedTasks = personTasks.filter(t => t.status === 'Completed' || t.status === 'Approved').length;
-    const delayedTasks = personTasks.filter(t => t.status !== 'Completed' && t.status !== 'Approved' && t.dueDate && new Date(t.dueDate) < new Date()).length;
-    
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const delayRate = totalTasks > 0 ? Math.round((delayedTasks / totalTasks) * 100) : 0;
-
-    return { salary, expense, added, count: tx.length, totalTasks, completionRate, delayRate };
-  };
-
-  if (loading) return (
-    <div className="space-y-8 py-6">
-      <div className="flex items-center justify-between px-1">
-        <div className="space-y-2"><div className="w-48 h-8 bg-accounting-text/10 rounded-xl animate-pulse" /><div className="w-24 h-3 bg-accounting-text/10 rounded-lg animate-pulse" /></div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {[1, 2, 3, 4, 5, 6].map(i => <CardSkeleton key={i} />)}
-      </div>
-    </div>
-  );
+  if (loading) return <div className="py-20 text-center font-black animate-pulse uppercase tracking-widest text-secondary-text/20">Loading Team...</div>;
 
   return (
-    <div className="space-y-8 py-6">
+    <div className="space-y-10 py-6">
       {/* Header */}
-      <div className="flex items-center justify-between px-1">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black text-accounting-text tracking-tighter leading-none">Personnel Registry</h1>
-          <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest mt-2">{staff?.length || 0} registered systemic entities</p>
+          <h1 className="text-5xl font-black tracking-tighter text-accounting-text">Staff</h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary-text/40 mt-3">Team Members</p>
         </div>
-        {isManagement && <Button onClick={openAdd} icon={Plus}>Add Stakeholder</Button>}
+        {isManagement && (
+          <Button onClick={openAdd} icon={Plus} className="h-14 px-8 shadow-2xl">Add Member</Button>
+        )}
       </div>
 
       {/* Staff Grid */}
-      {!staff || staff.length === 0 ? (
-        <Card className="p-20 flex flex-col items-center text-center space-y-4 border-2 border-dashed border-accounting-text/5">
-          <div className="w-20 h-20 rounded-3xl bg-accounting-bg flex items-center justify-center -inner border border-white">
-            <Users size={32} strokeWidth={1.5} className="text-secondary-text/30" />
-          </div>
-          <p className="text-lg font-black text-accounting-text uppercase tracking-tighter leading-none">The registry is currently empty</p>
-          <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest max-w-[240px]">Initialize the system by adding founders, operational staff, and freelancers.</p>
-          {isManagement && <Button onClick={openAdd} icon={Plus} className="mt-4 px-10">Add First Staff</Button>}
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {staff.map(person => {
-            const stats = getStaffStats(person.id);
-            const role = person.role || 'Staff';
-            const initials = person.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
-
-            return (
-              <Card
-                key={person.id}
-                onClick={() => setSelectedPerson(person)}
-                className="p-6 space-y-6 group cursor-pointer hover:border-accounting-text/10 hover:shadow-2xl transition-all duration-300"
-              >
-                {/* Top Row: Avatar + Name + Actions */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    {/* Avatar circle */}
-                    <div className={cn(
-                      'w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-black shadow-lg shadow-accounting-text/5',
-                      '-inner border border-white/20',
-                      ROLE_AVATAR[role] || ROLE_AVATAR.Staff
-                    )}>
-                      {initials}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-black text-accounting-text text-base tracking-tight leading-none truncate group-hover:translate-x-0.5 transition-transform">{person.name}</h3>
-                      <span className={cn('inline-block mt-2.5 px-2 py-0.5 rounded-lg text-[7px] font-black uppercase tracking-widest border -inner', ROLE_STYLES[role] || ROLE_STYLES.Staff)}>
-                        {role}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Action buttons (visible on hover) */}
-                  {isManagement && (
-                    <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all shrink-0 -translate-y-1 group-hover:translate-y-0">
-                      <Button variant="ghost" size="sm" icon={Edit2} iconSize={12} onClick={(e) => openEdit(person, e)} className="w-8 h-8 p-0 text-secondary-text hover:text-accounting-text bg-white shadow-sm border border-accounting-text/5" />
-                      <Button variant="ghost" size="sm" icon={Trash2} iconSize={12} onClick={(e) => { e.stopPropagation(); if (confirm(`Remove ${person.name}?`)) deleteStaff(person.id); }} className="w-8 h-8 p-0 text-red-400 hover:text-red-600 bg-white shadow-sm border border-accounting-text/5" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Stats Row */}
-                <div className="grid grid-cols-1 gap-2">
-                  <div className="flex items-center justify-between p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
-                    <div className="flex-1 space-y-1">
-                       <p className="text-[7px] font-black text-secondary-text/30 uppercase tracking-widest">Audited Completion</p>
-                       <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 bg-accounting-bg rounded-full overflow-hidden">
-                             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${stats.completionRate}%` }} />
-                          </div>
-                          <p className="text-[10px] font-black text-emerald-600">{stats.completionRate}%</p>
-                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
-                       <p className="text-[7px] font-black text-secondary-text/30 uppercase tracking-widest leading-none mb-1">Delay Rate</p>
-                       <p className={cn("text-xs font-black tracking-tight", stats.delayRate > 20 ? "text-rose-500" : "text-accounting-text")}>{stats.delayRate}%</p>
-                    </div>
-                    <div className="p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
-                       <p className="text-[7px] font-black text-secondary-text/30 uppercase tracking-widest leading-none mb-1">Strategic Overload</p>
-                       <p className="text-xs font-black text-accounting-text tracking-tight">{stats.totalTasks} Tasks</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-accounting-bg/40 rounded-2xl -inner border border-white">
-                    <div className="flex items-center gap-2 text-[8px] font-black text-secondary-text uppercase tracking-widest opacity-60">
-                      <Briefcase size={10} strokeWidth={3} /> Settled Payouts
-                    </div>
-                    <p className="font-black text-xs text-amber-600 tracking-tight">{formatCurrency(stats.salary)}</p>
-                  </div>
-                </div>
-
-                {person.note && (
-                  <p className="text-[10px] text-secondary-text/60 italic border-l-2 border-accounting-text/10 pl-3 leading-relaxed line-clamp-2">
-                    {person.note}
-                  </p>
-                )}
-
-                {/* View Details CTA */}
-                <div className="flex items-center justify-between pt-4 border-t border-accounting-text/5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accounting-text/10" />
-                    <span className="text-[8px] font-black text-secondary-text/40 uppercase tracking-widest">
-                      {stats.count} Recorded Events
-                    </span>
-                  </div>
-                  <span className="flex items-center gap-1.5 text-[8px] font-black text-secondary-text group-hover:text-accounting-text uppercase tracking-widest transition-all">
-                    Access Ledger <ChevronRight size={10} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ─── ADD / EDIT MODAL ─── */}
-      <Modal isOpen={modal} onClose={closeModal} title={editId ? 'Modify Stakeholder' : 'Provision Personnel'} subtitle="Systematic identification registry">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Input
-            label="Stakeholder Identity Name"
-            required
-            placeholder="e.g. Ahmed Ali"
-            value={form.name}
-            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {staffProfiles.map(person => (
+          <StaffCard 
+            key={person.id} 
+            person={person} 
+            isManagement={isManagement} 
+            onEdit={(e) => openEdit(person, e)}
+            onDelete={(e) => { e.stopPropagation(); if(confirm(`Remove ${person.name}?`)) deleteStaff(person.id); }}
+            onClick={() => setSelectedPerson(person)}
           />
-          <Input
-            label="Dispatch Email Alignment"
-            type="email"
-            placeholder="e.g. ahmed@webzio.com"
-            value={form.email}
-            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-          />
-          <div className="space-y-4">
-            <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Functional Protocol Role</label>
-            <div className="grid grid-cols-2 gap-3">
-              {['Founder', 'HR', 'Staff', 'Freelancer'].map(r => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, role: r }))}
-                  className={cn(
-                    "h-12 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border -inner",
-                    form.role === r
-                      ? "bg-accounting-text text-white border-transparent shadow-lg shadow-accounting-text/10"
-                      : "bg-accounting-bg/40 text-secondary-text/40 border-white hover:border-accounting-text/10"
-                  )}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
+        ))}
+      </div>
 
-          <div className="space-y-4">
-            <label className="text-[10px] font-black text-secondary-text uppercase tracking-widest px-1">Professional Core Specialist</label>
-            <div className="grid grid-cols-2 gap-3">
-              {PROFESSIONAL_ROLES.map(r => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, professionalRole: r }))}
-                  className={cn(
-                    "h-12 rounded-2xl text-[8px] font-black uppercase tracking-widest transition-all border -inner px-2",
-                    form.professionalRole === r
-                      ? "bg-indigo-600 text-white border-transparent shadow-lg shadow-indigo-200"
-                      : "bg-accounting-bg/40 text-secondary-text/40 border-white hover:border-accounting-text/10"
-                  )}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-          <Input
-            label="Procedural Notes"
-            placeholder="Optional context for this entity..."
-            value={form.note}
-            onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-          />
-          <div className="flex gap-4 pt-4 border-t border-accounting-bg">
-            <Button type="submit" isLoading={saving} fullWidth className="h-14">
-              {editId ? 'Authorize Update' : 'Initialize Stakeholder'}
-            </Button>
-            <Button variant="secondary" type="button" onClick={closeModal} className="h-14 px-10">Abort</Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* ─── STAFF DETAIL PANEL ─── */}
+      {/* Detail Panel */}
       <StaffDetailPanel
         person={selectedPerson}
         entries={entries}
         tasks={tasks}
         onClose={() => setSelectedPerson(null)}
       />
+
+      {/* Add/Edit Modal */}
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editId ? "Edit Member" : "Add Staff Member"}>
+        <form onSubmit={handleSubmit} className="space-y-8 p-1">
+          <Input label="Name" required value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <Input label="Email Address" type="email" required value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+          
+          <div className="space-y-3">
+            <label className="field-label">System Role</label>
+            <div className="grid grid-cols-2 gap-3">
+              {['Founder', 'HR', 'Staff', 'Freelancer'].map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setForm({...form, role: r})}
+                  className={cn(
+                    "h-14 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border -inner shadow-sm",
+                    form.role === r ? "bg-accounting-text text-white border-transparent" : "bg-white text-secondary-text/40 border-accounting-text/5 hover:border-accounting-text/20"
+                  )}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="field-label">Administrative Notes</label>
+            <textarea 
+              className="clay-input w-full min-h-[80px] resize-none" 
+              value={form.note} 
+              onChange={e => setForm({...form, note: e.target.value})}
+            />
+          </div>
+
+          {/* Module Access Control */}
+          <div className="space-y-3 p-5 bg-accounting-bg/40 rounded-3xl -inner border border-white/50">
+            <label className="field-label flex items-center justify-between">
+              Module Access Control
+              <span className="text-[8px] font-black text-secondary-text uppercase tracking-widest">Active Permissions</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {ALL_MODULES.map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    const perms = form.permissions || [];
+                    const newPerms = perms.includes(m) ? perms.filter(p => p !== m) : [...perms, m];
+                    setForm({...form, permissions: newPerms});
+                  }}
+                  className={cn(
+                    "flex items-center gap-2.5 p-3.5 rounded-2xl border-2 transition-all text-left",
+                    form.permissions?.includes(m)
+                      ? "bg-accounting-text border-accounting-text text-white shadow-lg"
+                      : "bg-white border-accounting-text/10 text-secondary-text hover:border-accounting-text/30"
+                  )}
+                >
+                   <div className={cn("w-5 h-5 rounded-lg flex items-center justify-center shrink-0 -inner", form.permissions?.includes(m) ? "bg-white/20" : "bg-accounting-bg")}>
+                    {form.permissions?.includes(m) && <ShieldCheck size={12} strokeWidth={3} className="text-white" />}
+                   </div>
+                  <span className={cn("text-[9px] font-black uppercase tracking-widest leading-none", form.permissions?.includes(m) ? "text-white" : "text-accounting-text")}>{m}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-4 pt-6">
+            <Button type="submit" isLoading={saving} fullWidth className="h-14">{editId ? 'Save Changes' : 'Add Staff'}</Button>
+            <Button variant="secondary" onClick={() => setModal(false)} className="h-14 px-10">Cancel</Button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+}
+
+function StaffCard({ person, isManagement, onEdit, onDelete, onClick }) {
+  const initials = person.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const roleColor = ROLE_THEMES[person.role] || ROLE_THEMES.Staff;
+
+  return (
+    <Card onClick={onClick} className="p-7 space-y-7 cursor-pointer hover:shadow-2xl transition-all duration-500 border border-transparent hover:border-accounting-text/5 group">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-5">
+          <div className={cn("w-14 h-14 rounded-3xl flex items-center justify-center text-lg font-black -inner border border-white shadow-lg", roleColor)}>
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-extrabold text-accounting-text tracking-tight uppercase text-[15px] truncate group-hover:translate-x-1 transition-transform">{person.name}</h3>
+            <p className="text-[10px] font-black text-secondary-text/40 uppercase tracking-widest mt-1.5">{person.role}</p>
+          </div>
+        </div>
+        {isManagement && (
+          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button variant="ghost" icon={Edit2} onClick={onEdit} className="w-9 h-9 p-0 bg-white border border-accounting-text/5" />
+            <Button variant="ghost" icon={Trash2} onClick={onDelete} className="w-9 h-9 p-0 text-red-300 hover:text-red-500 bg-white border border-accounting-text/5" />
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+         <PerformanceRow label="Completion Rate" value={person.metrics.completionRate} color="emerald" icon={Award} />
+         <div className="grid grid-cols-2 gap-3">
+            <PerformanceBox label="Delayed Tasks" value={`${person.metrics.delayRate}%`} icon={ShieldAlert} color={person.metrics.delayRate > 20 ? 'rose' : 'accounting-text'} />
+            <PerformanceBox label="Quality Score" value={`${person.metrics.qualityScore}%`} icon={Zap} color="indigo" />
+         </div>
+         <div className="flex items-center justify-between p-3.5 bg-accounting-bg/40 rounded-2xl border border-white -inner">
+            <p className="text-[8px] font-black uppercase tracking-widest text-secondary-text/30 flex items-center gap-2"><Briefcase size={12}/> Net Payouts</p>
+            <p className="text-[11px] font-black text-indigo-600">{formatCurrency(person.metrics.salaryTotal)}</p>
+         </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-5 border-t border-accounting-bg/50">
+        <span className="text-[8px] font-black text-secondary-text/20 uppercase tracking-widest">{person.metrics.totalTasks} Tasks</span>
+        <span className="flex items-center gap-1.5 text-[8px] font-black text-secondary-text/60 group-hover:text-accounting-text uppercase tracking-widest transition-colors">
+          View Detail <ChevronRight size={10} strokeWidth={4} className="group-hover:translate-x-1 transition-transform" />
+        </span>
+      </div>
+    </Card>
+  );
+}
+
+function PerformanceRow({ label, value, color, icon: Icon }) {
+  return (
+    <div className="p-3.5 bg-accounting-bg/40 rounded-2xl border border-white -inner space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[8px] font-black uppercase tracking-widest text-secondary-text/30 flex items-center gap-2"><Icon size={12}/> {label}</p>
+        <p className={cn("text-[10px] font-black", `text-${color}-600`)}>{value}%</p>
+      </div>
+      <div className="h-1.5 bg-accounting-bg/60 rounded-full overflow-hidden">
+        <div className={cn("h-full rounded-full transition-all duration-1000", `bg-${color}-500`)} style={{ width: `${value}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function PerformanceBox({ label, value, icon: Icon, color }) {
+  return (
+    <div className="p-3.5 bg-accounting-bg/40 rounded-2xl border border-white -inner">
+      <p className="text-[8px] font-black uppercase tracking-widest text-secondary-text/30 flex items-center gap-2 mb-2"><Icon size={12}/> {label}</p>
+      <p className={cn("text-[13px] font-black tracking-tighter text-accounting-text", color && `text-${color}-600`)}>{value}</p>
     </div>
   );
 }

@@ -46,7 +46,17 @@ export async function GET(request) {
     query += ' ORDER BY t.created_at DESC';
 
     const [rows] = await pool.query(query, params);
-    return NextResponse.json(rows);
+    
+    // Auto-calculate 'Delayed' status
+    const today = new Date().toISOString().split('T')[0];
+    const tasksWithAutoStatus = rows.map(t => {
+      if (t.status !== 'Completed' && t.status !== 'Approved' && t.status !== 'Delayed' && t.dueDate && t.dueDate < today) {
+        return { ...t, status: 'Delayed' };
+      }
+      return t;
+    });
+
+    return NextResponse.json(tasksWithAutoStatus);
   } catch (error) {
     console.error('DB Error:', error);
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 });

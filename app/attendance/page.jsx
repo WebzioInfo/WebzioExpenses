@@ -32,11 +32,11 @@ const STATUS_CONFIG = {
 };
 
 export default function AttendancePage() {
-  const { user, isFounder, isManagement } = useAuth();
+  const { user, isSuperAdmin, isManagement, viewMode: globalViewMode } = useAuth();
   const { staff = [] } = useApp();
   
   const [date, setDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'matrix'
+  const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'matrix' logic (Matrix vs List)
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -83,22 +83,25 @@ export default function AttendancePage() {
     }
   };
 
-  const [founderView, setFounderView] = useState('Company'); // 'Company' or 'Personal'
-
   const filteredStaff = useMemo(() => {
-    if (!isManagement) return staff.filter(s => s.email === user?.email);
-    if (isFounder && founderView === 'Personal') return staff.filter(s => s.email === user?.email);
+    // If not management OR in personal mode, filter to only self
+    if (!isManagement || globalViewMode === 'personal') {
+      return staff.filter(s => s.email === user?.email);
+    }
     return staff;
-  }, [staff, isManagement, isFounder, founderView, user]);
+  }, [staff, isManagement, globalViewMode, user]);
 
   const stats = useMemo(() => {
     if (!attendance.length) return { present: 0, absent: 0, leave: 0 };
+    // Filter attendance records based on filtered staff
+    const staffIds = new Set(filteredStaff.map(s => s.id));
+    const filteredAttendance = attendance.filter(a => staffIds.has(a.staff_id));
     return {
-      present: attendance.filter(a => a.status === 'Present').length,
-      absent: attendance.filter(a => a.status === 'Absent').length,
-      leave: attendance.filter(a => a.status === 'Leave').length,
+      present: filteredAttendance.filter(a => a.status === 'Present').length,
+      absent: filteredAttendance.filter(a => a.status === 'Absent').length,
+      leave: filteredAttendance.filter(a => a.status === 'Leave').length,
     };
-  }, [attendance]);
+  }, [attendance, filteredStaff]);
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">
@@ -113,49 +116,34 @@ export default function AttendancePage() {
         <div>
           <h1 className="text-4xl font-black text-accounting-text tracking-tighter leading-none">Attendance</h1>
           <p className="text-[10px] font-black text-secondary-text uppercase tracking-widest mt-2">
-            {isManagement ? 'Systemic personnel presence management' : 'Personal activity registry (Verified by HR/Founder)'}
+            {isManagement ? 'Systemic personnel presence management' : 'Personal activity registry (Verified by HR/Super Admin)'}
           </p>
         </div>
         
         <div className="flex items-center gap-4">
-          {/* View Toggle */}
-          <div className="flex p-1 bg-accounting-bg/40 rounded-2xl -inner border border-white/50">
-            {isFounder ? (
-                ['Company', 'Personal'].map(m => (
-                  <button
-                    key={m}
-                    onClick={() => setFounderView(m)}
-                    className={cn(
-                      "px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                      founderView === m ? "bg-accounting-text text-white shadow-lg" : "text-secondary-text/60 hover:text-accounting-text"
-                    )}
-                  >
-                    {m} Portal
-                  </button>
-                ))
-            ) : (
-              <>
-                <button 
-                  onClick={() => setViewMode('daily')}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                    viewMode === 'daily' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
-                  )}
-                >
-                  <ListFilter size={14} strokeWidth={3} /> Daily
-                </button>
-                <button 
-                  onClick={() => setViewMode('matrix')}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                    viewMode === 'matrix' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
-                  )}
-                >
-                  <LayoutGrid size={14} strokeWidth={3} /> Matrix
-                </button>
-              </>
-            )}
-          </div>
+          {/* List/Matrix View Toggle - For all management users */}
+          {isManagement && (
+            <div className="flex p-1 bg-accounting-bg/40 rounded-2xl -inner border border-white/50">
+              <button 
+                onClick={() => setViewMode('daily')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                  viewMode === 'daily' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
+                )}
+              >
+                <ListFilter size={14} strokeWidth={3} /> Daily List
+              </button>
+              <button 
+                onClick={() => setViewMode('matrix')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                  viewMode === 'matrix' ? "bg-white text-accounting-text shadow-sm" : "text-secondary-text/60 hover:text-accounting-text"
+                )}
+              >
+                <LayoutGrid size={14} strokeWidth={3} /> Matrix Grid
+              </button>
+            </div>
+          )}
 
           {/* Date Selector */}
           <div className="flex items-center gap-2 bg-accounting-bg/40 p-1 rounded-2xl -inner border border-white/50">

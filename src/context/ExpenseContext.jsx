@@ -1,38 +1,51 @@
 'use client';
 
 import { useConfig } from './ConfigContext';
-import { useTransactions } from './TransactionContext';
+import { useEntries } from './TransactionContext';
 import { useStats } from '../hooks/useStats';
+import { useAuth } from './AuthContext';
 
-// Backward compatibility facade hook to prevent cascading refactoring costs across 10 pages.
+// The Main Application Data Context (Facade Pattern)
 export const useApp = () => {
   const config = useConfig();
-  const trans = useTransactions();
-  const stats = useStats(trans.transactions);
+  const entryManager = useEntries();
+  const { user, viewMode } = useAuth();
+  
+  const isPersonalView = viewMode === 'personal';
+  
+  // High-Performance Data Filtering
+  const filteredEntries = isPersonalView 
+    ? entryManager.entries.filter(e => e.personName === user?.name || e.personId === user?.staffId)
+    : entryManager.entries;
+
+  const filteredTasks = isPersonalView
+    ? config.tasks.filter(t => t.assignedTo === user?.staffId)
+    : config.tasks;
+
+  const filteredLeads = isPersonalView
+    ? config.leads.filter(l => l.assignedTo === user?.name)
+    : config.leads;
+
+  const stats = useStats(filteredEntries);
 
   return {
-    // Data
-    entries: trans.transactions,
+    // Data (Filtered)
+    entries: filteredEntries,
+    tasks: filteredTasks,
+    leads: filteredLeads,
     staff: config.staff,
-    people: config.staff,
     projects: config.projects,
     accounts: config.accounts,
     categories: config.categories,
-    tasks: config.tasks,
-    leads: config.leads,
     clients: config.clients,
-    systemUsers: config.systemUsers,
-    loading: config.loading || trans.loading,
+    loading: config.loading || entryManager.loading,
 
-    // Actions (Mapped to new contexts)
-    addEntry: trans.addTransaction,
-    addTransaction: trans.addTransaction,
-    updateEntry: trans.updateTransaction,
-    updateTransaction: trans.updateTransaction,
-    deleteEntry: trans.deleteTransaction,
-    deleteTransaction: trans.deleteTransaction,
+    // Entry Actions
+    addEntry: entryManager.addEntry,
+    updateEntry: entryManager.updateEntry,
+    deleteEntry: entryManager.deleteEntry,
 
-    // CRM Actions
+    // Lead & Client Actions
     addLead: config.addLead,
     updateLead: config.updateLead,
     deleteLead: config.deleteLead,
@@ -40,43 +53,31 @@ export const useApp = () => {
     updateClient: config.updateClient,
     deleteClient: config.deleteClient,
 
-    // Staff Actions
+    // Team Actions
     addStaff: config.addStaff,
     updateStaff: config.updateStaff,
     deleteStaff: config.deleteStaff,
-    addPerson: config.addStaff,    // backward compatibility
-    updatePerson: config.updateStaff, // backward compatibility
-    deletePerson: config.deleteStaff, // backward compatibility
 
-    // Users & Permissions
-    addSystemUser: config.addSystemUser,
-    updateSystemUser: config.updateSystemUser,
-    updateSystemUserPermissions: config.updateSystemUserPermissions,
-
-    // Projects
+    // Project & Category Management
     addProject: config.addProject,
     updateProject: config.updateProject,
     deleteProject: config.deleteProject,
-
-    // Categories
     addCategory: config.addCategory,
     updateCategory: config.updateCategory,
     deleteCategory: config.deleteCategory,
 
-    // Tasks
+    // Task Management
     addTask: config.addTask,
     updateTask: config.updateTask,
     deleteTask: config.deleteTask,
 
-    // Utils
+    // System Utilities
     stats,
-    exportData: trans.exportCSV,
-    exportCSV: trans.exportCSV,
+    exportCSV: entryManager.exportCSV,
     fetchAll: async () => {
-      await Promise.all([config.refreshConfig(), trans.refreshTransactions()]);
+      await Promise.all([config.refreshConfig(), entryManager.refreshEntries()]);
     },
   };
 };
 
-// Aliases
 export const useExpenses = useApp;

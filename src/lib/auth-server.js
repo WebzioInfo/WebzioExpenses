@@ -33,7 +33,7 @@ export async function getServerSession() {
     return {
       user,
       staffId: staff?.id || null,
-      isAdmin: user.role === 'admin',
+      isAdmin: ['admin', 'founder'].includes(user.role?.toLowerCase()),
       isStaff: user.role === 'staff' || (staff && staff.staffRole === 'Staff'),
       isFreelancer: user.role === 'freelancer' || (staff && staff.staffRole === 'Freelancer'),
       permissions: typeof user.permissions === 'string' ? JSON.parse(user.permissions || '[]') : (user.permissions || [])

@@ -8,17 +8,27 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('company'); 
   const router = useRouter();
   const pathname = usePathname();
 
+  useEffect(() => {
+    const savedMode = localStorage.getItem('webzio_view_mode');
+    if (savedMode) setViewMode(savedMode);
+  }, []);
+
+  const toggleViewMode = () => {
+    const newMode = viewMode === 'company' ? 'personal' : 'company';
+    setViewMode(newMode);
+    localStorage.setItem('webzio_view_mode', newMode);
+  };
+
   const checkAuth = async () => {
     try {
-      // Server-side session validation
       const res = await fetch('/api/auth/me', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
-
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
@@ -42,7 +52,6 @@ export const AuthProvider = ({ children }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-
     if (res.ok) {
       const data = await res.json();
       setUser(data.user);
@@ -63,33 +72,57 @@ export const AuthProvider = ({ children }) => {
     router.push('/login');
   };
 
-    const hasPermission = (moduleName) => {
-      const role = user?.role?.toLowerCase();
-      if (role === 'founder' || role === 'admin') return true;
-      if (!user?.permissions) return false;
-      return user.permissions.includes(moduleName);
-    };
+  const role = user?.role?.toLowerCase();
+  const isAdmin = role === 'admin' || role === 'founder';
+  const isFounder = role === 'founder';
+  const isHR = role === 'hr';
+  const isStaff = role === 'staff';
+  const isFreelancer = role === 'freelancer';
+  const isSuperAdmin = isAdmin;
+  const isManagement = isSuperAdmin || isHR;
 
-    return (
-      <AuthContext.Provider
-        value={{
-          user,
-          loading,
-          isFounder: user?.role?.toLowerCase() === 'founder' || user?.role?.toLowerCase() === 'admin',
-          isAdmin: user?.role?.toLowerCase() === 'founder' || user?.role?.toLowerCase() === 'admin',
-          isHR: user?.role?.toLowerCase() === 'hr',
-          isManagement: ['founder', 'admin', 'hr'].includes(user?.role?.toLowerCase()),
-          permissions: user?.permissions || [],
-          hasPermission,
-          login,
-          logout,
-          refreshUser: checkAuth,
-          isAuthenticated: !!user
-        }}
-      >
-        {children}
-      </AuthContext.Provider>
-    );
+  const hasPermission = (moduleName) => {
+    if (isSuperAdmin) return true;
+    
+    // Normalize module names
+    const target = moduleName.toLowerCase();
+    const perms = (user?.permissions || []).map(p => p.toLowerCase());
+
+    if (perms.includes(target)) return true;
+
+    // HR Core Permissions Fallback
+    if (isHR) {
+      return ['team', 'work', 'attendance', 'dashboard'].includes(target);
+    }
+    
+    return false;
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        viewMode,
+        toggleViewMode,
+        isFounder,
+        isAdmin,
+        isSuperAdmin,
+        isHR,
+        isStaff,
+        isFreelancer,
+        isManagement,
+        permissions: user?.permissions || [],
+        hasPermission,
+        login,
+        logout,
+        refreshUser: checkAuth,
+        isAuthenticated: !!user
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);

@@ -6,6 +6,9 @@ import { useAuth } from '@/src/context/AuthContext';
 import { cn, formatDate } from '@/src/lib/utils';
 import Modal from '@/src/components/ui/Modal';
 import Button from '@/src/components/ui/Button';
+import Card from '@/src/components/ui/Card';
+import Input from '@/src/components/ui/Input';
+import Select from '@/src/components/ui/Select';
 import {
   Plus,
   Search,
@@ -14,42 +17,37 @@ import {
   User,
   ArrowRight,
   Trash2,
-  TrendingUp
+  TrendingUp,
+  Target,
+  Zap,
+  CheckCircle2,
+  History
 } from 'lucide-react';
-import { CardSkeleton } from '@/src/components/ui/Skeleton';
 
-const STATUS_CONFIG = {
+const STATUS_DESIGN = {
   'New': { color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
   'Contacted': { color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
   'Converted': { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
   'Lost': { color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100' },
 };
 
-export default function LeadsPage() {
+export default function CRMPage() {
   const { leads = [], addLead, updateLead, deleteLead, addClient, loading } = useApp();
-  const { isAdmin } = useAuth();
+  const { isManagement } = useAuth();
 
   const [modal, setModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
-  const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    source: 'Manual',
-    notes: ''
-  });
+  const [form, setForm] = useState({ name: '', phone: '', email: '', source: 'Manual', notes: '' });
   const [saving, setSaving] = useState(false);
 
-  const filteredLeads = useMemo(() => {
+  const filtered = useMemo(() => {
     let result = leads.filter(l => l.isActive);
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(l => l.name.toLowerCase().includes(q) || l.email?.toLowerCase().includes(q));
     }
-    if (filterStatus !== 'All') {
-      result = result.filter(l => l.status === filterStatus);
-    }
+    if (filterStatus !== 'All') result = result.filter(l => l.status === filterStatus);
     return result;
   }, [leads, search, filterStatus]);
 
@@ -63,196 +61,76 @@ export default function LeadsPage() {
   };
 
   const handleConvert = async (lead) => {
-    if (!confirm(`Convert ${lead.name} to a Client?`)) return;
+    if (!confirm(`Convert ${lead.name} to Client?`)) return;
     setSaving(true);
     try {
-      // 1. Add as Client
-      await addClient({
-        name: lead.name,
-        phone: lead.phone,
-        email: lead.email,
-        company: lead.source, // Temporary placeholder
-        notes: lead.notes
-      });
-      // 2. Update Lead status
+      await addClient({ name: lead.name, phone: lead.phone, email: lead.email, company: lead.source, notes: lead.notes });
       await updateLead(lead.id, { ...lead, status: 'Converted' });
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return (
-    <div className="space-y-8 py-6">
-      <div className="h-10 w-48 bg-accounting-text/5 animate-pulse rounded-xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[1, 2, 3, 4].map(i => <CardSkeleton key={i} />)}
-      </div>
-    </div>
-  );
+  if (loading) return <div className="py-20 text-center font-black animate-pulse uppercase tracking-widest text-secondary-text/20">Accessing Lead Pipeline...</div>;
 
   return (
-    <div className="space-y-8 py-6">
+    <div className="space-y-10 py-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-accounting-text tracking-tighter leading-none">Leads</h1>
-          <p className="text-[9px] font-black text-accounting-text/60 uppercase tracking-[0.3em] mt-1">
-            {filteredLeads.length} active leads in pipeline
-          </p>
+          <h1 className="text-5xl font-black tracking-tighter text-accounting-text">Leads</h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary-text/40 mt-3">Sales Pipeline</p>
         </div>
-        <Button
-          onClick={() => setModal(true)}
-          icon={Plus}
-        >
-          Add Lead
-        </Button>
+        <Button onClick={() => setModal(true)} icon={Plus} className="h-14 px-8 shadow-2xl">Add Lead</Button>
       </div>
 
-      {/* Pipeline Progress Bits */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <PipelineStat label="New" count={leads.filter(l => l.status === 'New' && l.isActive).length} color="text-blue-600" />
-        <PipelineStat label="Contacted" count={leads.filter(l => l.status === 'Contacted' && l.isActive).length} color="text-amber-600" />
-        <PipelineStat label="Converted" count={leads.filter(l => l.status === 'Converted' && l.isActive).length} color="text-emerald-600" />
-        <PipelineStat label="Lost" count={leads.filter(l => l.status === 'Lost' && l.isActive).length} color="text-red-500" />
+      {/* Snapshot Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <PipelineBox label="New Leads" count={leads.filter(l => l.status === 'New' && l.isActive).length} color="blue" />
+        <PipelineBox label="In Contact" count={leads.filter(l => l.status === 'Contacted' && l.isActive).length} color="amber" />
+        <PipelineBox label="Converted" count={leads.filter(l => l.status === 'Converted' && l.isActive).length} color="emerald" />
+        <PipelineBox label="Lost" count={leads.filter(l => l.status === 'Lost' && l.isActive).length} color="rose" />
       </div>
 
-      {/* Filters */}
-      <div className="clay-card p-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div className="space-y-1.5 md:col-span-2">
-          <label className="field-label">Search Pipeline</label>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-accounting-text/30" size={16} />
-            <input
-              className="clay-input w-full pl-11 h-11"
-              placeholder="Search leads by name or email..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
+      {/* Control Surface */}
+      <Card className="p-8 flex flex-col md:flex-row gap-6 items-center shadow-xl">
+        <div className="flex-1 w-full">
+          <Input icon={Search} placeholder="Search leads..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="space-y-1.5">
-          <label className="field-label">Status Filter</label>
-          <select
-            className="clay-input w-full h-11"
-            value={filterStatus}
-            onChange={e => setFilterStatus(e.target.value)}
-          >
-            <option value="All">All Leads</option>
-            <option value="New">New</option>
-            <option value="Contacted">Contacted</option>
-            <option value="Converted">Converted</option>
-            <option value="Lost">Lost</option>
-          </select>
-        </div>
-      </div>
+        <Select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="min-w-[200px]">
+          <option value="All">All Status</option>
+          <option value="New">New</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Converted">Converted</option>
+          <option value="Lost">Lost</option>
+        </Select>
+      </Card>
 
-      {/* Leads List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-10">
-        {filteredLeads.length === 0 ? (
-          <div className="md:col-span-2 clay-card p-20 flex flex-col items-center text-center">
-            <TrendingUp size={48} className="text-[#2D151F]/10 mb-4" strokeWidth={1} />
-            <p className="text-xl font-black text-[#2D151F]/40 uppercase tracking-tighter">No leads matched your search</p>
-          </div>
+      {/* Lead Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-10">
+        {filtered.length === 0 ? (
+          <div className="col-span-1 md:col-span-2 py-40 text-center opacity-20 font-black uppercase tracking-widest text-[11px]">No active leads identified in current matrix</div>
         ) : (
-          filteredLeads.map(lead => (
-            <div key={lead.id} className="clay-card p-6 flex flex-col h-full group hover:border-[#2D151F]/20 transition-all duration-300">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#2D151F]/5 flex items-center justify-center -inner">
-                    <User size={18} className="text-[#2D151F]/60" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-[#2D151F] text-lg leading-tight">{lead.name}</h3>
-                    <p className="text-[10px] font-black text-[#2D151F]/40 uppercase tracking-widest mt-1">{lead.source}</p>
-                  </div>
-                </div>
-                <div className={cn(
-                  "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest -inner border",
-                  STATUS_CONFIG[lead.status]?.bg,
-                  STATUS_CONFIG[lead.status]?.color,
-                  STATUS_CONFIG[lead.status]?.border
-                )}>
-                  {lead.status}
-                </div>
-              </div>
-
-              <div className="flex-1 space-y-3">
-                {lead.phone && (
-                  <div className="flex items-center gap-3 text-xs font-bold text-[#2D151F]/60">
-                    <Phone size={14} /> {lead.phone}
-                  </div>
-                )}
-                {lead.email && (
-                  <div className="flex items-center gap-3 text-xs font-bold text-[#2D151F]/60">
-                    <Mail size={14} /> {lead.email}
-                  </div>
-                )}
-                {lead.notes && (
-                  <div className="p-3 bg-[#2D151F]/5 rounded-xl text-[11px] text-[#2D151F]/60 leading-relaxed italic">
-                    {lead.notes}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 pt-5 border-t border-[#2D151F]/5 flex items-center justify-between">
-                <div className="text-[10px] font-black text-[#2D151F]/30 uppercase tracking-widest">
-                  Added {formatDate(lead.created_at)}
-                </div>
-                <div className="flex gap-2">
-                  {lead.status !== 'Converted' && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      icon={ArrowRight}
-                      onClick={() => handleConvert(lead)}
-                    >
-                      Convert
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={Trash2}
-                    onClick={async () => { if (confirm('Delete lead?')) await deleteLead(lead.id); }}
-                    className="text-red-400 hover:text-red-600"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))
+          filtered.map(lead => <LeadCard key={lead.id} lead={lead} onConvert={() => handleConvert(lead)} onDelete={async () => { if(confirm('Purge lead?')) await deleteLead(lead.id); }} />)
         )}
       </div>
 
-      {/* Add Lead Modal */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title="Add New Lead" subtitle="Capture a potential client">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="field-label">Client Name <span className="text-red-400">*</span></label>
-            <input required className="clay-input w-full" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Full name..." />
+      {/* Modal */}
+      <Modal isOpen={modal} onClose={() => setModal(false)} title="Initialize Lead Capture">
+        <form onSubmit={handleSubmit} className="space-y-8 p-1">
+          <Input label="Lead Identity Name" required value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="e.g. John Doe" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input label="Contact Communication" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} placeholder="Phone..." />
+            <Input label="Digital Endpoint" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="Email..." />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="field-label">Phone</label>
-              <input className="clay-input w-full" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="Phone number..." />
-            </div>
-            <div className="space-y-1.5">
-              <label className="field-label">Email</label>
-              <input type="email" className="clay-input w-full" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Email address..." />
-            </div>
+          <Input label="Acquisition Source" value={form.source} onChange={e => setForm({...form, source: e.target.value})} placeholder="e.g. LinkedIn, Referral" />
+          <div className="space-y-2">
+            <label className="field-label">Requirement Matrix & Notes</label>
+            <textarea className="clay-input w-full min-h-[100px] resize-none" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} placeholder="Operational requirements..." />
           </div>
-          <div className="space-y-1.5">
-            <label className="field-label">Source / Lead Info</label>
-            <input className="clay-input w-full" value={form.source} onChange={e => setForm({ ...form, source: e.target.value })} placeholder="Referral, Social Media, etc." />
-          </div>
-          <div className="space-y-1.5">
-            <label className="field-label">Requirement Details</label>
-            <textarea className="clay-input w-full min-h-[100px]" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="What are they looking for?" />
-          </div>
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" isLoading={saving} className="flex-1 h-12">Add Lead</Button>
-            <Button variant="outline" onClick={() => setModal(false)} className="h-12 px-6 text-[#2D151F]">Cancel</Button>
+          <div className="flex gap-4 pt-6">
+            <Button type="submit" isLoading={saving} fullWidth className="h-14">Capture Intake</Button>
+            <Button variant="secondary" onClick={() => setModal(false)} className="h-14 px-10">Abort</Button>
           </div>
         </form>
       </Modal>
@@ -260,9 +138,63 @@ export default function LeadsPage() {
   );
 }
 
-const PipelineStat = ({ label, count, color }) => (
-  <div className="clay-card p-5 flex flex-col items-center justify-center text-center">
-    <p className="text-[8px] font-black text-accounting-text/40 uppercase tracking-widest mb-1">{label}</p>
-    <p className={cn("text-2xl font-black tracking-tighter", color)}>{count}</p>
-  </div>
-);
+function PipelineBox({ label, count, color }) {
+  return (
+    <Card className="p-6 text-center space-y-2 border border-accounting-text/5 shadow-lg group">
+      <p className="text-[9px] font-black uppercase tracking-widest text-secondary-text/30 leading-none">{label}</p>
+      <p className={cn("text-4xl font-black tracking-tighter leading-none transition-transform group-hover:scale-110", `text-${color}-600`)}>{count}</p>
+    </Card>
+  );
+}
+
+function LeadCard({ lead, onConvert, onDelete }) {
+  const design = STATUS_DESIGN[lead.status] || STATUS_DESIGN['New'];
+  return (
+    <Card className="p-7 flex flex-col h-full group border border-transparent hover:border-accounting-text/5 shadow-none hover:shadow-2xl transition-all duration-500">
+      <div className="flex items-start justify-between mb-8">
+        <div className="flex items-center gap-5">
+          <div className="w-12 h-12 rounded-2xl bg-accounting-bg flex items-center justify-center -inner border border-white text-secondary-text/30 shadow-sm">
+            <User size={20} className="stroke-[2.5px]" />
+          </div>
+          <div className="min-w-0">
+             <h3 className="font-extrabold text-accounting-text text-[15px] uppercase tracking-tight truncate group-hover:translate-x-1 transition-transform">{lead.name}</h3>
+             <p className="text-[8px] font-black text-secondary-text/40 uppercase tracking-[0.2em] mt-2">{lead.source}</p>
+          </div>
+        </div>
+        <div className={cn("px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-widest border -inner shadow-sm", design.bg, design.color, design.border)}>
+          {lead.status}
+        </div>
+      </div>
+
+      <div className="flex-1 space-y-4">
+        <div className="grid grid-cols-1 gap-2.5">
+           <ContactBit icon={Phone} value={lead.phone || 'NO TEL ALIGNED'} />
+           <ContactBit icon={Mail} value={lead.email || 'NO EMAIL ALIGNED'} />
+        </div>
+        {lead.notes && (
+          <div className="p-4 bg-accounting-bg/40 rounded-2xl border border-white -inner text-[11px] text-secondary-text/60 italic leading-relaxed">
+            {lead.notes}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-accounting-bg/60 flex items-center justify-between">
+        <p className="text-[8px] font-black text-secondary-text/20 uppercase tracking-widest">Added {formatDate(lead.created_at)}</p>
+        <div className="flex gap-2">
+          {lead.status !== 'Converted' && (
+            <Button size="sm" variant="secondary" icon={CheckCircle2} onClick={onConvert} className="h-9 px-4 text-[9px]">Convert</Button>
+          )}
+          <Button variant="ghost" icon={Trash2} onClick={onDelete} className="w-9 h-9 p-0 text-rose-300 hover:text-rose-500 bg-white border border-accounting-text/5" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function ContactBit({ icon: Icon, value }) {
+  return (
+    <div className="flex items-center gap-3 text-[10px] font-bold text-secondary-text/40 uppercase tracking-widest">
+      <Icon size={12} strokeWidth={3} className="text-secondary-text/20" /> {value}
+    </div>
+  );
+}

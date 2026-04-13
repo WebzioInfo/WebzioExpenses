@@ -17,7 +17,7 @@ import { StaffDashboard } from '@/src/components/Dashboard/StaffDashboard';
 
 export default function Dashboard() {
   const { entries = [], projects = [], staff = [], tasks = [], loading } = useApp();
-  const { user, isManagement, isFounder } = useAuth();
+  const { user, isManagement, isSuperAdmin, viewMode } = useAuth();
 
   if (loading) return (
     <div className="space-y-10 py-6">
@@ -29,7 +29,17 @@ export default function Dashboard() {
     </div>
   );
 
-  // If Management (Founder or HR) -> Show Adaptive Management Dashboard
+  // Management (Founder/Admin/HR) but in Personal View
+  if (isManagement && viewMode === 'personal') {
+    return <StaffDashboard
+      user={user}
+      tasks={tasks}
+      entries={entries}
+      loading={loading}
+    />;
+  }
+
+  // If Management (Founder or HR) AND in Company View -> Show Adaptive Management Dashboard
   if (isManagement) {
     return <AdminDashboard
       user={user}
@@ -37,7 +47,7 @@ export default function Dashboard() {
       projects={projects}
       staff={staff}
       tasks={tasks}
-      isFounder={isFounder}
+      isSuperAdmin={isSuperAdmin}
     />;
   }
 
