@@ -4,17 +4,16 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
+import {
+  LayoutDashboard,
   LayoutGrid,
-  BarChart3, 
-  Users, 
-  Target, 
+  BarChart3,
+  Users,
+  Target,
   CreditCard,
-  Settings, 
-  ShieldCheck, 
+  Settings,
+  ShieldCheck,
   Calendar as CalendarIcon,
-  Objective
 } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { cn } from '@/src/lib/utils';
@@ -22,93 +21,93 @@ import Image from 'next/image';
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const pathname = usePathname();
-  const { user, isManagement, isSuperAdmin, isHR, hasPermission } = useAuth();
+  const { user, hasPermission } = useAuth();
 
   const navItems = [
     // 1. Dashboard
-    { 
-      name: 'Summary', 
-      path: '/', 
-      icon: LayoutDashboard, 
-      section: 'Quick View', 
+    {
+      name: 'Summary',
+      path: '/',
+      icon: LayoutDashboard,
+      section: 'Quick View',
       module: 'Dashboard'
     },
-    
+
     // 2. Work (Tasks)
-    { 
-      name: 'Tasks', 
-      path: '/tasks', 
-      icon: Target, 
-      section: 'Operations', 
+    {
+      name: 'Tasks',
+      path: '/tasks',
+      icon: Target,
+      section: 'Operations',
       module: 'Work'
     },
-    
+
     // 3. Team (Staff)
-    { 
-      name: 'Team', 
-      path: '/staff', 
-      icon: Users, 
-      section: 'Operations', 
+    {
+      name: 'Team',
+      path: '/staff',
+      icon: Users,
+      section: 'Operations',
       module: 'Team'
     },
-    
+
     // 4. Projects
-    { 
-      name: 'Projects', 
-      path: '/projects', 
-      icon: LayoutGrid, 
-      section: 'Operations', 
+    {
+      name: 'Projects',
+      path: '/projects',
+      icon: LayoutGrid,
+      section: 'Operations',
       module: 'Finance'
     },
 
     // 5. Finance (Entries)
-    { 
-      name: 'Transactions', 
-      path: '/transactions', 
-      icon: CreditCard, 
-      section: 'Finance', 
+    {
+      name: 'Transactions',
+      path: '/transactions',
+      icon: CreditCard,
+      section: 'Finance',
       module: 'Finance'
     },
-    
+
     // 6. CRM (Leads)
-    { 
-      name: 'Leads', 
-      path: '/leads', 
-      icon: BarChart3, 
-      section: 'Finance', 
+    {
+      name: 'Leads',
+      path: '/leads',
+      icon: BarChart3,
+      section: 'Finance',
       module: 'CRM'
     },
-    { 
-      name: 'Clients', 
-      path: '/clients', 
-      icon: Users, 
-      section: 'Finance', 
+    {
+      name: 'Clients',
+      path: '/clients',
+      icon: Users,
+      section: 'Finance',
       module: 'CRM'
     },
-    
+
     // Attendance & System
-    { 
-      name: 'Attendance', 
-      path: '/attendance', 
-      icon: CalendarIcon, 
-      section: 'Tracking', 
+    {
+      name: 'Attendance',
+      path: '/attendance',
+      icon: CalendarIcon,
+      section: 'Tracking',
       module: 'Attendance'
     },
-    { 
-      name: 'Settings', 
-      path: '/settings', 
-      icon: Settings, 
-      section: 'System', 
+    {
+      name: 'Settings',
+      path: '/settings',
+      icon: Settings,
+      section: 'System',
       module: 'Settings'
     },
-    
+
     // Admin
-    { 
-      name: 'Manage Users', 
-      path: '/users', 
-      icon: ShieldCheck, 
-      section: 'Admin', 
-      module: 'Settings' 
+    {
+      name: 'Manage Users',
+      path: '/users',
+      icon: ShieldCheck,
+      section: 'Admin',
+      module: 'Settings'
     },
   ].filter(item => {
     return hasPermission(item.module);
@@ -137,7 +136,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
           <div className="px-3 mb-10">
             <Link href="/" className="flex items-center gap-4 group">
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center -outer relative overflow-hidden p-2.5">
-                <Image src="/assets/logos/WEBZIOLOGO3.png" alt="Webzio" width={36} height={36} className="object-contain" priority />
+                <Image src="/logo.png" alt="Webzio" width={36} height={36} className="object-contain" priority />
               </div>
               <div>
                 <span className="font-black text-xl tracking-tighter text-accounting-text leading-none uppercase block">Webzio</span>
@@ -185,8 +184,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
           {/* Identity Tag */}
           <div className="px-3 mt-8">
             <div className="p-5 bg-accounting-bg/40 rounded-3xl -inner border border-white flex flex-col items-center text-center gap-2">
-               <p className="text-[8px] font-black text-accounting-text/30 uppercase tracking-[0.2em]">User Role</p>
-               <p className="text-[10px] font-black text-accounting-text uppercase">{user?.role}</p>
+              <p className="text-[8px] font-black text-accounting-text/30 uppercase tracking-[0.2em]">User Role</p>
+              <p className="text-[10px] font-black text-accounting-text uppercase">{user?.role}</p>
             </div>
           </div>
         </div>
