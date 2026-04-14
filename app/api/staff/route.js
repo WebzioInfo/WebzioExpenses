@@ -14,8 +14,11 @@ export async function GET(request) {
     let sql = 'SELECT * FROM staff WHERE isActive = TRUE';
     const params = [];
 
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
     // RBAC: Staff only see themselves
-    if (!session.isAdmin) {
+    if (!isManagement) {
       if (!session.staffId) return NextResponse.json([]);
       sql += ' AND id = ?';
       params.push(session.staffId);
@@ -40,9 +43,11 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
+      return NextResponse.json({ error: 'Unauthorized: Management only' }, { status: 401 });
     }
 
     const { name, email, role, note, permissions } = await request.json();
@@ -84,11 +89,14 @@ export async function PUT(request) {
 
     const { id, name, email, role, note, permissions } = await request.json();
 
-    if (!session.isAdmin && id !== session.staffId) {
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!isManagement && id !== session.staffId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (session.isAdmin) {
+    if (isManagement) {
       const permsJson = JSON.stringify(permissions || []);
       
       // Update Staff table
@@ -118,9 +126,11 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
   try {
-    const session = await getServerSession();
-    if (!session || !session.isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
+      return NextResponse.json({ error: 'Unauthorized: Management only' }, { status: 401 });
     }
 
     const { searchParams = new URL(request.url).searchParams } = new URL(request.url);

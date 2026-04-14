@@ -76,7 +76,10 @@ export async function POST(request) {
     let { title, description, assignedTo, projectId, status, priority, startDate, dueDate, fileUrl, notes } = body;
     const id = 'task_' + Date.now();
 
-    if (!session.isAdmin) {
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!isManagement) {
       assignedTo = session.staffId;
     }
 
@@ -153,7 +156,10 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     const session = await getServerSession();
-    if (!session || !session.isAdmin) {
+    const role = session?.user?.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -34,9 +34,17 @@ export async function getServerSession() {
       user,
       staffId: staff?.id || null,
       isAdmin: ['admin', 'founder'].includes(user.role?.toLowerCase()),
+      isHR: user.role?.toLowerCase() === 'hr',
       isStaff: user.role === 'staff' || (staff && staff.staffRole === 'Staff'),
       isFreelancer: user.role === 'freelancer' || (staff && staff.staffRole === 'Freelancer'),
-      permissions: typeof user.permissions === 'string' ? JSON.parse(user.permissions || '[]') : (user.permissions || [])
+      permissions: (() => {
+        try {
+          const perms = typeof user.permissions === 'string' ? JSON.parse(user.permissions || '[]') : (user.permissions || []);
+          return Array.isArray(perms) ? perms : [perms].filter(Boolean);
+        } catch (e) {
+          return ["Tasks"];
+        }
+      })()
     };
   } catch (error) {
     console.error('getServerSession Error:', error);

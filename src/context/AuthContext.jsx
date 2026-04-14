@@ -85,14 +85,22 @@ export const AuthProvider = ({ children }) => {
     if (isSuperAdmin) return true;
     
     // Normalize module names
-    const target = moduleName.toLowerCase();
-    const perms = (user?.permissions || []).map(p => p.toLowerCase());
+    const target = (moduleName || '').toLowerCase();
+    
+    // Ensure permissions is always an array
+    const userPerms = Array.isArray(user?.permissions) 
+      ? user.permissions 
+      : typeof user?.permissions === 'string' 
+        ? [user.permissions] 
+        : [];
+
+    const perms = (userPerms || []).map(p => (p || '').toLowerCase());
 
     if (perms.includes(target)) return true;
 
     // HR Core Permissions Fallback
     if (isHR) {
-      return ['team', 'work', 'attendance', 'dashboard'].includes(target);
+      return ['team', 'work', 'attendance', 'dashboard', 'finance', 'crm'].includes(target);
     }
     
     return false;
@@ -112,7 +120,7 @@ export const AuthProvider = ({ children }) => {
         isStaff,
         isFreelancer,
         isManagement,
-        permissions: user?.permissions || [],
+        permissions: Array.isArray(user?.permissions) ? user.permissions : [],
         hasPermission,
         login,
         logout,

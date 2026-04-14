@@ -5,8 +5,10 @@ import { getServerSession } from '@/src/lib/auth-server';
 export async function GET(request) {
   try {
     const session = await getServerSession();
-    if (!session || !session.isAdmin) {
-      // In this version, only admins manage the CRM pipeline
+    const role = session?.user?.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -36,7 +38,10 @@ import { logActivity } from '@/src/lib/activity';
 export async function POST(request) {
   try {
     const session = await getServerSession();
-    if (!session || !session.isAdmin) {
+    const role = session?.user?.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -61,7 +66,10 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const session = await getServerSession();
-    if (!session || !session.isAdmin) {
+    const role = session?.user?.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -85,7 +93,10 @@ export async function PUT(request) {
 export async function DELETE(request) {
   try {
     const session = await getServerSession();
-    if (!session || !session.isAdmin) {
+    const role = session?.user?.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

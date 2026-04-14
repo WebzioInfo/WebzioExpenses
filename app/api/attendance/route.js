@@ -29,7 +29,10 @@ export async function GET(request) {
     const year = searchParams.get('year');   // YYYY
     let staffId = searchParams.get('staffId');
 
-    if (!session.isAdmin) {
+    const role = session.user.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!isManagement) {
       staffId = session.staffId;
     }
 
@@ -59,8 +62,11 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const session = await getServerSession();
-    if (!session || !session.isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const role = session?.user?.role?.toLowerCase();
+    const isManagement = ['founder', 'admin', 'hr'].includes(role);
+
+    if (!session || !isManagement) {
+      return NextResponse.json({ error: 'Unauthorized: Management only' }, { status: 401 });
     }
 
     await initTable();
